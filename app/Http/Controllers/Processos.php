@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -47,12 +48,13 @@ class Processos extends Controller
     }
 
     /// GET
-    public function processoAValidar(Request $request) {
+    public function processoAValidar(Request $request)
+    {
         $rfValidador = $request->query('rfValidador');
 
         // Primeiro busca processo que esteja em validacao pendente
         $registro = DB::table('levantamentohis')
-            ->select('autonum', 'processo', 'assunto', 'dtEmissao', 'doc_txt')
+            ->select('autonum', 'codigoPedido', 'sql_incra', 'processo', 'assunto', 'dtEmissao', 'doc_txt')
             ->where('validando', 1)
             ->where('rfValidador', $rfValidador)
             ->first();
@@ -60,7 +62,7 @@ class Processos extends Controller
         if (!$registro) {
             // Busca o primeiro registro com validando = false e validado = false, ordenado por dtEmissao desc
             $registro = DB::table('levantamentohis')
-                ->select('autonum', 'codigoPedido', 'processo', 'assunto', 'dtEmissao', 'doc_txt')
+                ->select('autonum', 'codigoPedido', 'sql_incra', 'processo', 'assunto', 'dtEmissao', 'doc_txt')
                 ->whereNull('validando')
                 ->whereNull('validado')
                 ->whereIn('assunto', [
@@ -79,6 +81,21 @@ class Processos extends Controller
                 ->limit(1)
                 ->first();
         }
+
+        $docsRelacionados = DB::table('levantamentohis')
+            ->select('assunto', 'dtEmissao', 'doc_txt')
+            ->where('sql_incra', $registro->sql_incra)
+            ->where('autonum', '<>', $registro->autonum)
+            ->orderBy('dtEmissao', 'desc')
+            ->get()
+            ->map(function ($doc) {
+                return [
+                    'assunto' => $doc->assunto,
+                    'dtEmissao' => $doc->dtEmissao,
+                    'doc_txt' => $doc->doc_txt,
+                ];
+            });
+
 
         function extrairLinha21($texto)
         {
@@ -113,7 +130,8 @@ class Processos extends Controller
                 'dtEmissao'     => $registro->dtEmissao ?? '',
                 'docAprovacao'  => $docAprovacao,
                 'docConclusao'  => $registro->doc_txt ?? '',
-                'uniCatUso'     => [(object)[]], // sempre vazio
+                'uniCatUso'     => [(object)[]], // sempre vazio,
+                'docsRelacionados' => $docsRelacionados,
             ]
         ]);
     }

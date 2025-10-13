@@ -24,45 +24,60 @@
         </div>
         <div class="card w-75 mx-auto mt-4">
             <div class="card-body" v-show="isCarregando">
-                <h2>@{{msgStatus}}</h2>
+                <h2 class="text-center">@{{msgStatus}}</h2>
+                <div class="d-flex justify-content-center align-items-center"
+                    v-if="msgStatus = 'Carregando...'"
+                    style="height: 10vh;">
+                    <div class="spinner-border text-info" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
             </div>
             <div class="card-body px-4" v-show="!isCarregando">
-                <div class="card-title">
-                    <h3>Processo: @{{ objProcesso.processo }} - @{{ objProcesso.assunto }}</h3>
-                </div>
-                <hr>
-                <h4>Categoria identificada: @{{objProcesso.categoria}}</h4>
-                <hr>
-                <div class="row g-2">
-                    <div class="col-2">
-                        <label class="form-label">Data de Emissão</label>
-                        <input type="date" class="form-control" v-model="objProcesso.dtEmissao" disabled>
+                <div id="fixada" style="position: sticky; top: 0; background-color: white; z-index: 10; padding: 10px; border-bottom: 1px solid #ccc;">
+                    <div class="card-title">
+                        <h3>Processo: @{{ objProcesso.processo }} - @{{ objProcesso.assunto }}</h3>
                     </div>
-                    <div class="col-2">
-                        <label class="form-label">Blocos</label>
-                        <input type="number" class="form-control" v-model="objProcesso.blocos">
-                    </div>
-                    <div class="col-2">
-                        <label class="form-label">Pavimentos</label>
-                        <input type="number" class="form-control" v-model="objProcesso.pavimentos">
-                    </div>
-                    <div class="col">
-                        <label class="form-label">Unidades por categoria de uso</label>
-                        <div class="row g-2" v-for="(item, index) in objProcesso.uniCatUso" :key="index">
-                            <div class="col">
-                                <select class="form-select" v-model="item.nome">
-                                    <option disabled value="">Selecione</option>
-                                    <option v-for="opcao in opcoesUniCatUso" :key="opcao" :value="opcao">@{{ opcao }}</option>
-                                </select>
-                            </div>
-                            <div class="col">
-                                <input type="number" class="form-control" v-model="item.valor">
-                            </div>
+                    <hr>
+                    <h4>Categoria identificada: @{{objProcesso.categoria}}</h4>
+                    <hr>
+                    <div class="row g-2">
+                        <div class="col-2">
+                            <label class="form-label">Data de Emissão</label>
+                            <input type="date" class="form-control" v-model="objProcesso.dtEmissao" disabled>
                         </div>
-                        <br>
-                        <button class="btn btn-sm btn-outline-primary mt-0" @click="adicionarUniCatUso" v-if="podeAdicionarUniCatUso">
-                            + Adicionar
-                        </button>
+                        <div class="col-2">
+                            <label class="form-label">Blocos</label>
+                            <input type="number" class="form-control" v-model="objProcesso.blocos">
+                        </div>
+                        <div class="col-2">
+                            <label class="form-label">Pavimentos</label>
+                            <input type="number" class="form-control" v-model="objProcesso.pavimentos">
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Unidades por categoria de uso</label>
+                            <div class="row g-2" v-for="(item, index) in objProcesso.uniCatUso" :key="index">
+                                <div class="col">
+                                    <select class="form-select" v-model="item.nome">
+                                        <option disabled value="">Selecione</option>
+                                        <option v-for="opcao in opcoesUniCatUso" :key="opcao" :value="opcao">@{{ opcao }}</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <input type="number" class="form-control" v-model="item.valor">
+                                </div>
+                            </div>
+                            <br>
+                            <button class="btn btn-sm btn-outline-primary mt-0" @click="adicionarUniCatUso" v-if="podeAdicionarUniCatUso">
+                                + Adicionar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row my-4">
+                        <div class="col">
+                            <button class="btn btn-success btn-lg w-100" @click="validarProcesso">Validar</button>
+                        </div>
                     </div>
                 </div>
 
@@ -86,13 +101,20 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="row my-4">
-                    <div class="col">
-                        <button class="btn btn-success btn-lg w-100" @click="validarProcesso">Validar</button>
+                <hr>
+                <div v-if="objProcesso.docsRelacionados && objProcesso.docsRelacionados.length > 0">
+                    <h5>Docs Relacionados ao SQL</h5>
+                    <div class="mt-4 row" v-for="docRelacionado in objProcesso.docsRelacionados">
+                        <div class="col mr-2">
+                            <div class="card">
+                                <div class="card-header">@{{docRelacionado.assunto}} - @{{docRelacionado.dtEmissao}}</div>
+                                <div class="card-body txt-doc">
+                                    <p v-html="destacarTermos(docRelacionado.doc_txt)" style="white-space: pre-line;"></p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
             </div>
         </div>
 
@@ -284,9 +306,6 @@
                     }
                     if (!numUnidades) {
                         numUnidades = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docAprovacao, 'UNIDADE');
-                    }
-                    if (!numUnidades) {
-                        return 1;
                     }
                     return numUnidades;
                 } catch (err) {
