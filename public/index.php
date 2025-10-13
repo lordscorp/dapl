@@ -1,5 +1,15 @@
 <?php
 
+session_start();
+
+// Verifica se usuário está logado
+
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+    header("location: login.php");
+    exit;
+}
+
+
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 

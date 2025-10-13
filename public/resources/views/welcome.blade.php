@@ -64,14 +64,14 @@
                         <div class="card">
                             <div class="card-header">Doc. Aprovação</div>
                             <div class="card-body txt-doc">
-                                <p style="white-space: pre-line;">@{{ objProcesso.docAprovacao }}</p>
+                                @{{objProcesso.docAprovacao}}
                             </div>
                         </div>
                     </div>
                     <div class="col ml-2" id="txt-conclusao">
                         <div class="card">
                             <div class="card-header">Doc. Conclusão</div>
-                            <div class="card-body txt-doc">
+                            <div class="card-body">
                                 @{{objProcesso.docConclusao}}
                             </div>
                         </div>
@@ -130,10 +130,6 @@
         computed: {
             podeAdicionarUniCatUso() {
                 const ultimo = this.objProcesso.uniCatUso[this.objProcesso.uniCatUso.length - 1];
-                console.log("ULTIMO: ", ultimo)
-                if (!ultimo) {
-                    return true;
-                }
                 return ultimo.nome && ultimo.valor !== null;
             }
         },
@@ -162,15 +158,6 @@
 
                     const data = await response.json();
                     this.objProcesso = data.objProcesso;
-                    if (!this.objProcesso.uniCatUso) {
-                        this.objProcesso.uniCatUso.push({
-                            nome: 'HIS',
-                            valor: null
-                        })
-                    }
-                    // this.objProcesso.docAprovacao = this.objProcesso.docAprovacao?.replace(/\r?\n/g, '<br>') || '';
-                    // this.objProcesso.docConclusao = this.objProcesso.docConclusao?.replace(/\r?\n/g, '<br>') || '';
-                    this.$forceUpdate();
                 } catch (error) {
                     console.error('Erro na requisição:', error);
                 }
