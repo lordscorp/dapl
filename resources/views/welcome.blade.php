@@ -82,21 +82,21 @@
                 </div>
 
                 <div class="mt-4 row">
-                    <div class="col mr-2" id="txt-aprovacao">
-                        <div class="card">
-                            <div class="card-header">Doc. Aprovação</div>
-                            <div class="card-body txt-doc">
-                                <!-- <p style="white-space: pre-line;">@{{ objProcesso.docAprovacao }}</p> -->
-                                <p v-html="destacarTermos(objProcesso.docAprovacao)" style="white-space: pre-line;"></p>
-                            </div>
-                        </div>
-                    </div>
                     <div class="col ml-2" id="txt-conclusao">
                         <div class="card">
-                            <div class="card-header">Doc. Conclusão</div>
+                            <div class="card-header">Certificado de Conclusão</div>
                             <div class="card-body txt-doc">
                                 <!-- @{{objProcesso.docConclusao}} -->
                                 <p v-html="destacarTermos(objProcesso.docConclusao)" style="white-space: pre-line;"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col mr-2" id="txt-aprovacao">
+                        <div class="card">
+                            <div class="card-header">Doc Relacionado</div>
+                            <div class="card-body txt-doc">
+                                <!-- <p style="white-space: pre-line;">@{{ objProcesso.docAprovacao }}</p> -->
+                                <p v-html="destacarTermos(objProcesso.docAprovacao)" style="white-space: pre-line;"></p>
                             </div>
                         </div>
                     </div>
