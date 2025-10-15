@@ -10,7 +10,7 @@
 
 <body>
     <div id="logout">
-        <span id="nome-usuario">Nome: {{ $nome }}</span><span id="rf-usuario">{{ $rf }}</span>
+        <span id="nome-usuario" style="opacity: 0;">Nome: {{ $nome }}</span><span id="rf-usuario">{{ $rf }}</span>
         <a href="logout.php"><button class="btn btn-danger btn-sm float-right">Sair</button></a>
     </div>
     <div id="app">
@@ -19,10 +19,13 @@
                 <img src="../resources/img/logo_prefeitura.png" alt="PMSP">
             </div>
             <div class="col">
-                <h1>Validação de Processos</h1>
+                <h1>DAPL - Dados Abertos de Processos de Licenciamento</h1>
             </div>
         </div>
         <div class="card w-75 mx-auto mt-4">
+            <div class="card-header text-center">
+                <h2>Validação de Processos</h2>
+            </div>
             <div class="card-body" v-show="isCarregando">
                 <h2 class="text-center">@{{msgStatus}}</h2>
                 <div class="d-flex justify-content-center align-items-center"
@@ -38,10 +41,9 @@
                     <div class="card-title">
                         <h3>Processo: @{{ objProcesso.processo }} - @{{ objProcesso.assunto }}</h3>
                     </div>
-                    <hr>
                     <h4>Categoria identificada: @{{objProcesso.categoria}}</h4>
                     <hr>
-                    <div class="row g-2">
+                    <div class="row g-1">
                         <div class="col-2">
                             <label class="form-label">Data de Emissão</label>
                             <input type="date" class="form-control" v-model="objProcesso.dtEmissao" disabled>
@@ -74,7 +76,7 @@
                         </div>
                     </div>
 
-                    <div class="row my-4">
+                    <div class="row my-0">
                         <div class="col">
                             <button class="btn btn-success btn-lg w-100" @click="validarProcesso">Validar</button>
                         </div>
@@ -132,7 +134,11 @@
     createApp({
         data() {
             return {
-                opcoesUniCatUso: ['EHIS', 'EHMP', 'HIS', 'HMP', 'R1', 'R2'],
+                SUBPREFEITURAS: ['Aricanduva', 'Butantã', 'Campo Limpo', 'Capela do Socorro', 'Casa Verde', 'Cidade Ademar', 'Cidade Tiradentes', 'Ermelino Matarazzo', 'Freguesia/Brasilândia', 'Guaianases', 'Ipiranga', 'Itaim Paulista', 'Itaquera', 'Jabaquara', 'Jaçanã/Tremembé', 'Lapa', 'MBoi Mirim', 'Mooca', 'Parelheiros', 'Penha', 'Perus/Anhaguera', 'Pinheiros', 'Pirituba/Jaraguá', 'Santana/Tucuruvi', 'Santo Amaro', 'São Mateus', 'São Miguel', 'Sapopemba', 'Sé', 'Vila Maria/Vila Guilherme', 'Vila Mariana', 'Vila Prudente'],
+
+                opcoesUniCatUsoR: ['EHIS', 'EHMP', 'HIS', 'HMP', 'R1', 'R2'],
+                opcoesUniCatUsoNR: ['nRa', 'nR1', 'nR2', 'nR3', 'Ind 1a', 'Ind 1b', 'Ind 2', 'Ind 3', 'INFRA'],
+                opcoesUniCatUso: [],
 
                 isCarregando: false,
                 msgStatus: 'Carregando...',
@@ -149,7 +155,8 @@
                         nome: 'HIS',
                         valor: null
                     }],
-                }
+                },
+
             }
         },
         computed: {
@@ -162,6 +169,7 @@
             }
         },
         mounted() {
+            this.carregarOptions();
             this.carregarProcesso();
         },
         methods: {
@@ -170,6 +178,10 @@
                     nome: '',
                     valor: null
                 });
+            },
+
+            carregarOptions() {
+                this.opcoesUniCatUso = this.opcoesUniCatUsoR.concat(this.opcoesUniCatUsoNR);
             },
 
             async carregarProcesso() {
@@ -210,7 +222,6 @@
                 }
             },
 
-
             destacarTermos(texto) {
                 if (!texto) return '';
 
@@ -221,9 +232,17 @@
                     'PREDIO': 'destaque-2',
                     'PRÉDIO': 'destaque-2',
                     'UNIDADES': 'destaque-3',
+                    'R1': 'destaque-4',
+                    'R2': 'destaque-4',
                     'HMP': 'destaque-4',
+                    'H.M.P': 'destaque-4',
+                    'H M P': 'destaque-4',
                     'HIS': 'destaque-5',
+                    'H.I.S': 'destaque-5',
+                    'H I S': 'destaque-5',
                 };
+
+
 
                 // const regex = new RegExp(`(${termo})`, 'gi');
                 // return texto.replace(regex, '<span class="destaque">$1</span>');
@@ -442,6 +461,13 @@
 <style>
     body {
         background-color: #EEE;
+    }
+
+    h1, h2 {
+        font-size: 1.5rem;
+    }
+    h3, h4 {
+        font-size: 1.25rem;
     }
 
     #logout {
