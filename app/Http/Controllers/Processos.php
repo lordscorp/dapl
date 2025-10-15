@@ -7,6 +7,50 @@ use Illuminate\Support\Facades\DB;
 
 class Processos extends Controller
 {
+    /// GET
+    public function dadosDashboard()
+    {
+        $dados = DB::table('levantamentohis')
+            ->whereIn('assunto', ['Certificado de Conclusao'])
+            ->where(function ($query) {
+                $query->where('doc_txt', 'like', '%H.M.P%')
+                    ->orWhere('doc_txt', 'like', '%HMP%')
+                    ->orWhere('doc_txt', 'like', '%H M P%')
+                    ->orWhere('doc_txt', 'like', '%HIS%')
+                    ->orWhere('doc_txt', 'like', '%H I S%')
+                    ->orWhere('doc_txt', 'like', '%H.I.S%');
+            })
+            ->whereBetween('dtEmissao', ['2014-01-01', '2019-08-14'])
+            ->selectRaw('
+            COUNT(*) as totalHisHmp,
+            SUM(CASE WHEN validando = 1 THEN 1 ELSE 0 END) as totalValidando,
+            SUM(CASE WHEN validado = 1 THEN 1 ELSE 0 END) as totalValidado
+        ')
+            ->first();
+
+        return response()->json($dados);
+    }
+
+    public function mockDadosDashboard()
+    {
+        // Gera um número total aleatório entre 50 e 200
+        $totalHisHmp = rand(50, 200);
+
+        // Gera um número de validando entre 0 e 20
+        $totalValidando = rand(0, min(20, $totalHisHmp));
+
+        // Gera um número de validado entre 0 e (total - validando)
+        $totalValidado = rand(0, $totalHisHmp - $totalValidando);
+
+        $dados = (object) [
+            'totalHisHmp' => $totalHisHmp,
+            'totalValidando' => $totalValidando,
+            'totalValidado' => $totalValidado
+        ];
+
+        return response()->json($dados);
+    }
+
     public function validarProcesso(Request $request)
     {
         $data = $request->input('objProcesso');
@@ -47,7 +91,6 @@ class Processos extends Controller
         return response()->json(['status' => 'ok', 'atualizado' => $dadosUpdate]);
     }
 
-    /// GET
     public function processoAValidar(Request $request)
     {
         $rfValidador = $request->query('rfValidador');

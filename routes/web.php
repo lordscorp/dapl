@@ -18,8 +18,18 @@ Route::get('/', function () {
     $nome = $_SESSION['nomeUsuario'] ?? 'Visitante';
     $rf = $_SESSION['IDUsuario'];
 
-    return view('welcome', compact('nome', 'rf'));
+    return view('dashboard', compact('nome', 'rf'));
 });
 
+Route::get('/validacao', function () {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    $nome = $_SESSION['nomeUsuario'] ?? 'Visitante';
+    $rf = $_SESSION['IDUsuario'];
+
+    return view('validacao', compact('nome', 'rf'));
+});
 
 

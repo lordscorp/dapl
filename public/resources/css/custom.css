@@ -1,0 +1,65 @@
+body {
+    background-color: #EEE;
+}
+
+h1,
+h2 {
+    font-size: 1.5rem;
+}
+
+h3,
+h4 {
+    font-size: 1.25rem;
+}
+
+#logout {
+    position: absolute;
+    right: 1rem;
+}
+
+#app {
+    margin: 1rem;
+}
+
+#nome-usuario {
+    color: #EEE;
+}
+
+.txt-doc {
+    max-height: 30rem;
+    overflow: auto;
+}
+
+.destaque {
+    background-color: yellow;
+    font-weight: bold;
+}
+
+.destaque-1 {
+    background-color: #F55;
+    font-weight: bold;
+}
+
+.destaque-2 {
+    background-color: cyan;
+    font-weight: bold;
+}
+
+.destaque-3 {
+    background-color: #C5E;
+    font-weight: bold;
+}
+
+.destaque-4 {
+    background-color: yellow;
+    font-weight: bold;
+}
+
+.destaque-5 {
+    background-color: yellow;
+    font-weight: bold;
+}
+.big-numbers {
+    font-size: 5rem;
+    font-weight: bold;
+}

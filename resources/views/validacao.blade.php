@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DAPL - Dados Abertos de Processos de Licenciamento</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../resources/css/custom.css">
 </head>
 
 <body>
@@ -24,7 +25,14 @@
         </div>
         <div class="card w-75 mx-auto mt-4">
             <div class="card-header text-center">
-                <h2>Validação de Processos</h2>
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a class="nav-link"  href="index.php">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active"  aria-current="page">Validação</a>
+                    </li>
+                </ul>
             </div>
             <div class="card-body" v-show="isCarregando">
                 <h2 class="text-center">@{{msgStatus}}</h2>
@@ -122,8 +130,8 @@
 
     </div>
 </body>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../resources/js/bootstrap.bundle.min.js"></script>
+<script src="../resources/js/vue.global.js"></script>
 <script>
     const {
         createApp,
@@ -458,63 +466,3 @@
 </script>
 
 </html>
-<style>
-    body {
-        background-color: #EEE;
-    }
-
-    h1, h2 {
-        font-size: 1.5rem;
-    }
-    h3, h4 {
-        font-size: 1.25rem;
-    }
-
-    #logout {
-        position: absolute;
-        right: 1rem;
-    }
-
-    #app {
-        margin: 1rem;
-    }
-
-    #nome-usuario {
-        color: #EEE;
-    }
-
-    .txt-doc {
-        max-height: 30rem;
-        overflow: auto;
-    }
-
-    .destaque {
-        background-color: yellow;
-        font-weight: bold;
-    }
-
-    .destaque-1 {
-        background-color: #F55;
-        font-weight: bold;
-    }
-
-    .destaque-2 {
-        background-color: cyan;
-        font-weight: bold;
-    }
-
-    .destaque-3 {
-        background-color: #C5E;
-        font-weight: bold;
-    }
-
-    .destaque-4 {
-        background-color: yellow;
-        font-weight: bold;
-    }
-
-    .destaque-5 {
-        background-color: yellow;
-        font-weight: bold;
-    }
-</style>
