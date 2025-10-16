@@ -27,10 +27,10 @@
             <div class="card-header text-center">
                 <ul class="nav nav-pills">
                     <li class="nav-item">
-                        <a class="nav-link"  href="index.php">Dashboard</a>
+                        <a class="nav-link" href="index.php">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active"  aria-current="page">Validação</a>
+                        <a class="nav-link active" aria-current="page">Validação</a>
                     </li>
                 </ul>
             </div>
@@ -52,19 +52,20 @@
                     <h4>Categoria identificada: @{{objProcesso.categoria}}</h4>
                     <hr>
                     <div class="row g-1">
-                        <div class="col-2">
+                        <div class="col-2" v-if="false">
                             <label class="form-label">Data de Emissão</label>
                             <input type="date" class="form-control" v-model="objProcesso.dtEmissao" disabled>
                         </div>
-                        <div class="col-2">
+                        <div class="col-1">
                             <label class="form-label">Blocos</label>
                             <input type="number" class="form-control" v-model="objProcesso.blocos">
                         </div>
-                        <div class="col-2">
+                        <div class="col-1">
                             <label class="form-label">Pavimentos</label>
                             <input type="number" class="form-control" v-model="objProcesso.pavimentos">
                         </div>
-                        <div class="col">
+                        <!-- UNIDADES POR CATEGORIA DE USO -->
+                        <div class="col px-2">
                             <label class="form-label">Unidades por categoria de uso</label>
                             <div class="row g-2" v-for="(item, index) in objProcesso.uniCatUso" :key="index">
                                 <div class="col">
@@ -77,14 +78,65 @@
                                     <input type="number" class="form-control" v-model="item.valor">
                                 </div>
                             </div>
-                            <br>
-                            <button class="btn btn-sm btn-outline-primary mt-0" @click="adicionarUniCatUso" v-if="podeAdicionarUniCatUso">
-                                + Adicionar
+                            <button class="btn btn-sm btn-outline-primary my-1" @click="adicionarUniCatUso" v-if="podeAdicionarUniCatUso">
+                                <strong>+</strong>
                             </button>
+                        </div>
+                        <!-- AMPARO LEGAL -->
+                        <div class="col">
+                            <label for="amparoLegal" class="form-label">Amparo Legal</label>
+                            <input type="text" class="form-control" id="amparoLegal" v-model="objProcesso.amparoLegal" :title="objProcesso.amparoLegal">
+                        </div>
+                        <!-- OUTORGA -->
+                        <div class="col-2">
+                            <div class="form-check">
+                                <label class="form-check-label" for="constaOutorga">
+                                    Consta Outorga?
+                                </label>
+                                <input class="form-check-input" type="checkbox" id="constaOutorga" v-model="objProcesso.constaOutorga">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-1">
+                        <div class="container mt-4">
+                            <div class="row g-3">
+                                <div class="col">
+                                    <label for="areaTotal" class="form-label">Área Total</label>
+                                    <input type="number" class="form-control" id="areaTotal" v-model="objProcesso.areaTotal" min="0" step="0.01">
+                                </div>
+
+                                <div class="col">
+                                    <label for="areaConstruida" class="form-label">Área Construída</label>
+                                    <input type="number" class="form-control" id="areaConstruida" v-model="objProcesso.areaConstruida" min="0" step="0.01">
+                                </div>
+
+                                <div class="col">
+                                    <label for="areaComputavel" class="form-label">Área Computável</label>
+                                    <input type="number" class="form-control" id="areaComputavel" v-model="objProcesso.areaComputavel" min="0" step="0.01">
+                                </div>
+
+                                <div class="col-2">
+                                    <label class="form-label">Subprefeitura</label>
+                                    <select class="form-select" v-model="objProcesso.subprefeitura">
+                                        <option disabled value="">Selecione</option>
+                                        <option v-for="opcao in SUBPREFEITURAS" :key="opcao" :value="opcao">@{{ opcao }}</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-2">
+                                    <label for="zoneamento" class="form-label">Zoneamento</label>
+                                    <input type="text" class="form-control" id="zoneamento" v-model="objProcesso.zoneamento">
+                                </div>
+
+                                <div class="col-2">
+                                    <label for="proprietario" class="form-label">Proprietário</label>
+                                    <input type="text" class="form-control" id="proprietario" :title="objProcesso.proprietario" v-model="objProcesso.proprietario">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="row my-0">
+                    <div class="row my-1">
                         <div class="col">
                             <button class="btn btn-success btn-lg w-100" @click="validarProcesso">Validar</button>
                         </div>
@@ -96,7 +148,6 @@
                         <div class="card">
                             <div class="card-header">Certificado de Conclusão</div>
                             <div class="card-body txt-doc">
-                                <!-- @{{objProcesso.docConclusao}} -->
                                 <p v-html="destacarTermos(objProcesso.docConclusao)" style="white-space: pre-line;"></p>
                             </div>
                         </div>
@@ -105,8 +156,7 @@
                         <div class="card">
                             <div class="card-header">Doc Relacionado</div>
                             <div class="card-body txt-doc">
-                                <!-- <p style="white-space: pre-line;">@{{ objProcesso.docAprovacao }}</p> -->
-                                <p v-html="destacarTermos(objProcesso.docAprovacao)" style="white-space: pre-line;"></p>
+                                <p v-html="destacarTermos(objProcesso.docCodReferenciado)" style="white-space: pre-line;"></p>
                             </div>
                         </div>
                     </div>
@@ -148,6 +198,40 @@
                 opcoesUniCatUsoNR: ['nRa', 'nR1', 'nR2', 'nR3', 'Ind 1a', 'Ind 1b', 'Ind 2', 'Ind 3', 'INFRA'],
                 opcoesUniCatUso: [],
 
+                termosDestaque: {
+                    'PAVIMENTO': 'destaque-1',
+                    'ANDAR': 'destaque-1',
+                    'BLOCO': 'destaque-1',
+                    'PREDIO': 'destaque-1',
+                    'PRÉDIO': 'destaque-1',
+                    'UNIDADES': 'destaque-1',
+                    'ÁREA': 'destaque-2',
+                    'AREA': 'destaque-2',
+                    'OUTORGA': 'destaque-2',
+                    'ZONEAMENTO': 'destaque-2',
+                    'LEI': 'destaque-3',
+                    'DECRETO': 'destaque-3',
+                    'R1': 'destaque-4',
+                    'R2': 'destaque-4',
+                    'HMP': 'destaque-4',
+                    'H.M.P': 'destaque-4',
+                    'H M P': 'destaque-4',
+                    'HIS': 'destaque-4',
+                    'H.I.S': 'destaque-4',
+                    'H I S': 'destaque-4',
+                    'nRa': 'destaque-5',
+                    'nR1': 'destaque-5',
+                    'nR2': 'destaque-5',
+                    'nR3': 'destaque-5',
+                    'Ind 1a': 'destaque-5',
+                    'Ind 1b': 'destaque-5',
+                    'Ind 2': 'destaque-5',
+                    'Ind 3': 'destaque-5',
+                    'INFRA': 'destaque-5',
+                    'PROPRIETARIO': 'destaque-5',
+                    'PROPRIETÁRIO': 'destaque-5',
+                },
+
                 isCarregando: false,
                 msgStatus: 'Carregando...',
 
@@ -157,12 +241,20 @@
                     dtEmissao: "2025-10-10",
                     blocos: null,
                     pavimentos: null,
-                    docAprovacao: "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Dignissimos, enim qui nostrum architecto dolor fugiat rerum ducimus debitis itaque et veniam sed omnis repudiandae maiores nobis, excepturi quam illo nemo!",
+                    docCodReferenciado: "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Dignissimos, enim qui nostrum architecto dolor fugiat rerum ducimus debitis itaque et veniam sed omnis repudiandae maiores nobis, excepturi quam illo nemo!",
                     docConclusao: "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Dignissimos, enim qui nostrum architecto dolor fugiat rerum ducimus debitis itaque et veniam sed omnis repudiandae maiores nobis, excepturi quam illo nemo!",
                     uniCatUso: [{
                         nome: 'HIS',
                         valor: null
                     }],
+                    amparoLegal: 'XPTO',
+                    constaOutorga: false,
+                    areaTotal: 0,
+                    areaConstruida: 0,
+                    areaComputavel: 0,
+                    subprefeitura: '',
+                    zoneamento: '',
+                    proprietario: '',
                 },
 
             }
@@ -219,8 +311,9 @@
                     this.procurarCatUso();
                     this.objProcesso.blocos = this.procurarBlocos();
                     this.objProcesso.pavimentos = this.procurarPavimentos();
-                    // this.objProcesso.docAprovacao = this.objProcesso.docAprovacao?.replace(/\r?\n/g, '<br>') || '';
-                    // this.objProcesso.docConclusao = this.objProcesso.docConclusao?.replace(/\r?\n/g, '<br>') || '';
+                    this.atribuirAreas();
+                    this.procurarProprietario();
+
                     this.isCarregando = false;
                     this.$forceUpdate();
                 } catch (error) {
@@ -230,34 +323,18 @@
                 }
             },
 
+            atribuirAreas() {
+                this.objProcesso.areaTotal = parseFloat((this.objProcesso.areaTotal || '0').replace(',', '.')) || 0;
+                this.objProcesso.areaConstruida = parseFloat((this.objProcesso.areaConstruida || '0').replace(',', '.')) || 0;
+                this.objProcesso.areaComputavel = parseFloat((this.objProcesso.areaComputavel || '0').replace(',', '.')) || 0;
+            },
+
             destacarTermos(texto) {
                 if (!texto) return '';
 
-                const termos = {
-                    'PAVIMENTO': 'destaque-1',
-                    'ANDAR': 'destaque-1',
-                    'BLOCO': 'destaque-2',
-                    'PREDIO': 'destaque-2',
-                    'PRÉDIO': 'destaque-2',
-                    'UNIDADES': 'destaque-3',
-                    'R1': 'destaque-4',
-                    'R2': 'destaque-4',
-                    'HMP': 'destaque-4',
-                    'H.M.P': 'destaque-4',
-                    'H M P': 'destaque-4',
-                    'HIS': 'destaque-5',
-                    'H.I.S': 'destaque-5',
-                    'H I S': 'destaque-5',
-                };
-
-
-
-                // const regex = new RegExp(`(${termo})`, 'gi');
-                // return texto.replace(regex, '<span class="destaque">$1</span>');
-
                 let resultado = texto;
 
-                for (const [palavra, classe] of Object.entries(termos)) {
+                for (const [palavra, classe] of Object.entries(this.termosDestaque)) {
                     const regex = new RegExp(`(${palavra})`, 'gi');
                     resultado = resultado.replace(regex, `<span class="${classe}">$1</span>`);
                 }
@@ -265,12 +342,6 @@
                 return resultado;
 
             },
-
-            // extrairLinha21($texto) {
-            //     $linhas = preg_split('/\r\n|\r|\n/', $texto);
-            //     return count($linhas) >= 21 ? trim($linhas[20]) : null;
-            // },
-
 
             encontrarNumeroAntesDaPalavra(texto, palavraChave) {
                 const regex = new RegExp(`(\\d+(?:[.,]\\d+)?)\\s+${palavraChave}`, 'i');
@@ -329,10 +400,10 @@
                 try {
                     let numUnidades = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docConclusao, 'UNIDADE');
                     if (!numUnidades) {
-                        numUnidades = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docAprovacao, 'UNIDADE');
+                        numUnidades = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docCodReferenciado, 'UNIDADE');
                     }
                     if (!numUnidades) {
-                        numUnidades = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docAprovacao, 'UNIDADE');
+                        numUnidades = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docCodReferenciado, 'UNIDADE');
                     }
                     return numUnidades;
                 } catch (err) {
@@ -347,10 +418,10 @@
                         numBlocos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docConclusao, 'BLOCO');
                     }
                     if (!numBlocos) {
-                        numBlocos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docAprovacao, 'PREDIO');
+                        numBlocos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docCodReferenciado, 'PREDIO');
                     }
                     if (!numBlocos) {
-                        numBlocos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docAprovacao, 'BLOCO');
+                        numBlocos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docCodReferenciado, 'BLOCO');
                     }
                     // DEPOIS DA PALAVRA
                     if (!numBlocos) {
@@ -360,10 +431,10 @@
                         numBlocos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docConclusao, 'BLOCO');
                     }
                     if (!numBlocos) {
-                        numBlocos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docAprovacao, 'PREDIO');
+                        numBlocos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docCodReferenciado, 'PREDIO');
                     }
                     if (!numBlocos) {
-                        numBlocos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docAprovacao, 'BLOCO');
+                        numBlocos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docCodReferenciado, 'BLOCO');
                     }
                     // FIM DEPOIS DA PALAVRA
                     if (!numBlocos) {
@@ -382,10 +453,10 @@
                         numPavimentos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docConclusao, 'PAVIMENTO');
                     }
                     if (!numPavimentos) {
-                        numPavimentos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docAprovacao, 'ANDAR');
+                        numPavimentos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docCodReferenciado, 'ANDAR');
                     }
                     if (!numPavimentos) {
-                        numPavimentos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docAprovacao, 'PAVIMENTO');
+                        numPavimentos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docCodReferenciado, 'PAVIMENTO');
                     }
                     // DEPOIS PALAVRA
                     if (!numPavimentos) {
@@ -395,10 +466,10 @@
                         numPavimentos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docConclusao, 'PAVIMENTO');
                     }
                     if (!numPavimentos) {
-                        numPavimentos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docAprovacao, 'ANDAR');
+                        numPavimentos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docCodReferenciado, 'ANDAR');
                     }
                     if (!numPavimentos) {
-                        numPavimentos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docAprovacao, 'PAVIMENTO');
+                        numPavimentos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docCodReferenciado, 'PAVIMENTO');
                     }
                     // FIM DEPOIS PALAVRA
                     if (!numPavimentos) {
@@ -409,6 +480,37 @@
                     console.warn("procurar Pavimentos: ", err);
                 }
                 return null;
+            },
+            procurarProprietario() {
+                let nomeProprietario = null;
+
+                try {
+                    const match = this.objProcesso.docConclusao.match(/PROPRIET[ÁA]RIO\s*:\s*(.+)/i);
+                    if (match) {
+                        nomeProprietario = match[1].split('\n')[0].trim();
+                    }
+                } catch (err) {
+                    console.warn("Erro ao procurar proprietario no doc conclusao", err);
+                }
+
+                if (!nomeProprietario) {
+                    this.objProcesso.docsRelacionados.forEach(doc => {
+                        if (nomeProprietario) return;
+
+                        const texto = doc.doc_txt || '';
+                        const matchR = texto.match(/PROPRIET[ÁA]RIO\s*:\s*(.+)/i);
+                        if (matchR) {
+                            nomeProprietario = matchR[1].split('\n')[0].trim();
+                        }
+                    });
+                }
+
+                this.objProcesso.proprietario = nomeProprietario;
+
+                this.$forceUpdate();
+            },
+            procurarAreas() {
+                // this.areaComputavel = 
             },
 
             traduzir(campo) {
@@ -427,10 +529,7 @@
                 try {
                     this.isCarregando = true;
                     this.msgStatus = 'Validando informações...';
-                    // const response = await this.$axios.post('/validarProcesso', {
-                    //     objProcesso: this.objProcesso
-                    // });
-
+                    
                     const response = await fetch('api/validarProcesso', {
                         method: 'POST',
                         headers: {
@@ -441,12 +540,6 @@
                             objProcesso: this.objProcesso
                         })
                     });
-
-
-                    // Se chegou aqui, foi validado com sucesso
-                    // window.alert('Validado com sucesso!');
-                    // window.location.reload();
-
 
                     if (!response.ok) throw new Error('Erro na requisição');
 

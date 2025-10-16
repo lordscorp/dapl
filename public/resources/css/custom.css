@@ -51,7 +51,7 @@ h4 {
 }
 
 .destaque-4 {
-    background-color: yellow;
+    background-color: #8F8;
     font-weight: bold;
 }
 
@@ -59,6 +59,12 @@ h4 {
     background-color: yellow;
     font-weight: bold;
 }
+
+.destaque-6 {
+    background-color: yellow;
+    font-weight: bold;
+}
+
 .big-numbers {
     font-size: 5rem;
     font-weight: bold;

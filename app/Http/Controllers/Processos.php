@@ -57,21 +57,39 @@ class Processos extends Controller
 
         // Mapeamento dos nomes para colunas
         $mapaUso = [
-            'HIS' => 'numHIS',
-            'HMP' => 'numHMP',
-            'EHIS' => 'numEHIS',
-            'EHMP' => 'numEHMP',
-            'R1' => 'numR1',
-            'R2' => 'numR2',
+            'HIS' => 'num_HIS',
+            'HMP' => 'num_HMP',
+            'EHIS' => 'num_EHIS',
+            'EHMP' => 'num_EHMP',
+            'R1' => 'num_R1',
+            'R2' => 'num_R2',
+            'nRa'    => 'num_nRa',
+            'nR1'    => 'num_nR1',
+            'nR2'    => 'num_nR2',
+            'nR3'    => 'num_nR3',
+            'Ind1a'  => 'num_Ind1a',
+            'Ind1b'  => 'num_Ind1b',
+            'Ind2'   => 'num_Ind2',
+            'Ind3'   => 'num_Ind3',
+            'INFRA'  => 'num_INFRA',
+
         ];
 
         // Monta os dados para update
         $dadosUpdate = [
-            'blocos' => (int) $data['blocos'],
-            'pavimentos' => (int) $data['pavimentos'],
-            'validado' => 1,
-            'validando' => 0,
-            'validadoEm' => now()
+            'blocos'             => (int) $data['blocos'],
+            'pavimentos'         => (int) $data['pavimentos'],
+            'validado'           => 1,
+            'validando'          => 0,
+            'validadoEm'         => now(),
+            'amparoLegal'        => $data['amparoLegal'] ?? null,
+            'constaOutorga'      => isset($data['constaOutorga']) && $data['constaOutorga'] ? 1 : 0,
+            'P_QTD_TERR_REAL'    => number_format((float) ($data['areaTotal'] ?? 0), 2, '.', ''),
+            'P_QTD_AREA_CNSR'    => number_format((float) ($data['areaConstruida'] ?? 0), 2, '.', ''),
+            'P_QTD_AREA_CMPL'    => number_format((float) ($data['areaComputavel'] ?? 0), 2, '.', ''),
+            'subprefeitura'      => $data['subprefeitura'] ?? '',
+            'zoneamento'         => $data['zoneamento'] ?? '',
+            'proprietario'       => $data['proprietario'] ?? '',
         ];
 
         // Adiciona os campos de uniCatUso conforme nome
@@ -94,10 +112,23 @@ class Processos extends Controller
     public function processoAValidar(Request $request)
     {
         $rfValidador = $request->query('rfValidador');
+        $camposSelect = [
+            'autonum',
+            'codigoPedido',
+            'sql_incra',
+            'processo',
+            'assunto',
+            'dtEmissao',
+            'doc_txt',
+            'codigoPedidoReferenciado',
+            'P_QTD_TERR_REAL',
+            'P_QTD_AREA_CNSR',
+            'P_QTD_AREA_CMPL'
+        ];
 
         // Primeiro busca processo que esteja em validacao pendente
         $registro = DB::table('levantamentohis')
-            ->select('autonum', 'codigoPedido', 'sql_incra', 'processo', 'assunto', 'dtEmissao', 'doc_txt')
+            ->select($camposSelect)
             ->where('validando', 1)
             ->where('rfValidador', $rfValidador)
             ->first();
@@ -105,7 +136,7 @@ class Processos extends Controller
         if (!$registro) {
             // Busca o primeiro registro com validando = false e validado = false, ordenado por dtEmissao desc
             $registro = DB::table('levantamentohis')
-                ->select('autonum', 'codigoPedido', 'sql_incra', 'processo', 'assunto', 'dtEmissao', 'doc_txt')
+                ->select($camposSelect)
                 ->whereNull('validando')
                 ->whereNull('validado')
                 ->whereIn('assunto', [
@@ -146,6 +177,16 @@ class Processos extends Controller
             return count($linhas) >= 21 ? trim($linhas[20]) : null;
         }
 
+        function extrairAmparoLegal(string $texto): ?string
+        {
+            // Captura "AMPARO LEGAL:" seguido de qualquer conteúdo, seja na mesma linha ou na próxima
+            if (preg_match('/AMPARO LEGAL\s*:\s*(?:\r?\n)?(.*)/i', $texto, $matches)) {
+                return trim($matches[1]);
+            }
+
+            return null;
+        }
+
 
         if (!$registro) {
             return response()->json(['message' => 'Nenhum processo encontrado'], 404);
@@ -161,8 +202,34 @@ class Processos extends Controller
             ]);
 
         // Carrega doc_txt do Alvara de Aprovacao
-        $docAprovacao = '';
-        // TODO: carregar dados da tabela relacionada
+        $docCodReferenciado = DB::table('levantamentohis')
+            ->select('assunto', 'dtEmissao', 'doc_txt', 'P_QTD_TERR_REAL', 'P_QTD_AREA_CNSR', 'P_QTD_AREA_CMPL')
+            ->where('codigoPedido', $registro->codigoPedidoReferenciado)
+            ->limit(1)
+            ->first();
+
+        $txtAmparoLegal = '';
+
+        try {
+            $txtAmparoLegal = extrairAmparoLegal($registro->doc_txt);
+            if (empty($txtAmparoLegal)) {
+                $txtAmparoLegal = extrairAmparoLegal($docCodReferenciado->doc_txt);
+            }
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
+
+        $areaTotal = '';
+        $areaConstruida = '';
+        $areaComputavel = '';
+
+        try {
+            $areaTotal = $registro->P_QTD_TERR_REAL ?? $docCodReferenciado->P_QTD_TERR_REAL;
+            $areaConstruida = $registro->P_QTD_AREA_CNSR ?? $docCodReferenciado->P_QTD_AREA_CNSR;
+            $areaComputavel = $registro->P_QTD_AREA_CMPL ?? $docCodReferenciado->P_QTD_AREA_CMPL;
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
 
         return response()->json([
             'objProcesso' => [
@@ -171,10 +238,15 @@ class Processos extends Controller
                 'processo'      => $registro->processo ?? '',
                 'assunto'       => $registro->assunto ?? '',
                 'dtEmissao'     => $registro->dtEmissao ?? '',
-                'docAprovacao'  => $docAprovacao,
+                'docCodReferenciado'  => $docCodReferenciado->doc_txt ?? '',
                 'docConclusao'  => $registro->doc_txt ?? '',
                 'uniCatUso'     => [(object)[]], // sempre vazio,
                 'docsRelacionados' => $docsRelacionados,
+                'sqlIncra'      => $registro->sql_incra,
+                'amparoLegal'   => $txtAmparoLegal,
+                'areaTotal'     => $areaTotal,
+                'areaConstruida'     => $areaConstruida,
+                'areaComputavel'     => $areaComputavel,
             ]
         ]);
     }
