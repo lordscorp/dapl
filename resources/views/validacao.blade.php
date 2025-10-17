@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DAPL - Dados Abertos de Processos de Licenciamento</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../resources/css/custom.css">
+    <link rel="stylesheet" href="../resources/css/custom.css?x=1">
 </head>
 
 <body>
@@ -23,7 +23,7 @@
                 <h1>DAPL - Dados Abertos de Processos de Licenciamento</h1>
             </div>
         </div>
-        <div class="card w-75 mx-auto mt-4">
+        <div class="card mx-auto mt-4" id="container-principal">
             <div class="card-header text-center">
                 <ul class="nav nav-pills">
                     <li class="nav-item">
@@ -31,6 +31,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page">Validação</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="tutorial">Tutorial</a>
                     </li>
                 </ul>
             </div>
@@ -50,6 +53,7 @@
                         <h3>Processo: @{{ objProcesso.processo }} - @{{ objProcesso.assunto }}</h3>
                     </div>
                     <h4>Categoria identificada: @{{objProcesso.categoria}}</h4>
+                    <div id="sqlincra" class="mr-1">SQL: @{{ objProcesso.sqlIncra}}</div>
                     <hr>
                     <div class="row g-1">
                         <div class="col-2" v-if="false">
@@ -124,7 +128,7 @@
                                 </div>
 
                                 <div class="col-2">
-                                    <label for="zoneamento" class="form-label">Zoneamento</label>
+                                    <label for="zoneamento" class="form-label">Zoneamento Atual</label>
                                     <input type="text" class="form-control" id="zoneamento" v-model="objProcesso.zoneamento">
                                 </div>
 
@@ -209,6 +213,8 @@
                     'AREA': 'destaque-2',
                     'OUTORGA': 'destaque-2',
                     'ZONEAMENTO': 'destaque-2',
+                    'ANTERIOR': 'destaque-ruim',
+                    'ATUAL': 'destaque-bom',
                     'LEI': 'destaque-3',
                     'DECRETO': 'destaque-3',
                     'R1': 'destaque-4',
@@ -312,7 +318,7 @@
                     this.objProcesso.blocos = this.procurarBlocos();
                     this.objProcesso.pavimentos = this.procurarPavimentos();
                     this.atribuirAreas();
-                    this.procurarProprietario();
+                    // this.procurarProprietario();
 
                     this.isCarregando = false;
                     this.$forceUpdate();
@@ -529,7 +535,7 @@
                 try {
                     this.isCarregando = true;
                     this.msgStatus = 'Validando informações...';
-                    
+
                     const response = await fetch('api/validarProcesso', {
                         method: 'POST',
                         headers: {
@@ -559,3 +565,22 @@
 </script>
 
 </html>
+<style>
+    #sqlincra {
+        position: absolute;
+        right: 0;
+        margin-top: -3em;
+    }
+
+    #constaOutorga {
+        width: 30px;
+        height: 30px;
+        position: absolute;
+        right: 4em;
+        margin-top: 2em;
+        border: 1px solid black;
+    }
+    #container-principal {
+        max-width: 1200px;
+    }
+</style>

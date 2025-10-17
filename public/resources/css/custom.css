@@ -65,6 +65,17 @@ h4 {
     font-weight: bold;
 }
 
+.destaque-ruim {
+    color: red;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.destaque-bom {
+    color: green;
+    font-weight: bold;
+}
+
 .big-numbers {
     font-size: 5rem;
     font-weight: bold;

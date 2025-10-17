@@ -171,10 +171,16 @@ class Processos extends Controller
             });
 
 
-        function extrairLinha21($texto)
+        // function extrairLinha21($texto)
+        // {
+        //     $linhas = preg_split('/\r\n|\r|\n/', $texto);
+        //     return count($linhas) >= 21 ? trim($linhas[20]) : null;
+        // }
+
+        function extrairLinha($texto, $linha)
         {
             $linhas = preg_split('/\r\n|\r|\n/', $texto);
-            return count($linhas) >= 21 ? trim($linhas[20]) : null;
+            return count($linhas) >= $linha ? trim($linhas[$linha - 1]) : null;
         }
 
         function extrairAmparoLegal(string $texto): ?string
@@ -184,6 +190,23 @@ class Processos extends Controller
                 return trim($matches[1]);
             }
 
+            return null;
+        }
+
+        function extrairZoneamento($texto)
+        {
+            // Primeiro tenta encontrar "ZONEAMENTO ATUAL"
+            if (preg_match('/ZONEAMENTO\s+ATUAL\s*[:\-]*\s*([A-Za-z].*)/i', $texto, $match)) {
+                return trim($match[1]);
+            }
+
+            // Se não encontrar, procura por "ZONEAMENTO" que NÃO seja "ZONEAMENTO ANTERIOR"
+            if (preg_match_all('/ZONEAMENTO(?!\s+ANTERIOR)\s*[:\-]*\s*([A-Za-z].*)/i', $texto, $matches)) {
+                // Retorna a primeira ocorrência válida
+                return trim($matches[1][0]);
+            }
+
+            // Se nada for encontrado, retorna null
             return null;
         }
 
@@ -209,11 +232,30 @@ class Processos extends Controller
             ->first();
 
         $txtAmparoLegal = '';
+        $txtZoneamento = '';
 
         try {
             $txtAmparoLegal = extrairAmparoLegal($registro->doc_txt);
             if (empty($txtAmparoLegal)) {
                 $txtAmparoLegal = extrairAmparoLegal($docCodReferenciado->doc_txt);
+            }
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
+
+        try {
+            $txtZoneamento = extrairZoneamento($registro->doc_txt);
+            if (empty($txtZoneamento)) {
+                $txtZoneamento = extrairZoneamento($docCodReferenciado->doc_txt);
+            }
+            if (empty($txtZoneamento)) {
+                foreach ($docsRelacionados as $doc) {
+                    $zoneamento = extrairZoneamento($doc['doc_txt']);
+                    if ($zoneamento) {
+                        $txtZoneamento = $zoneamento;
+                        break;
+                    }
+                }
             }
         } catch (\Throwable $th) {
             //throw $th;
@@ -234,7 +276,8 @@ class Processos extends Controller
         return response()->json([
             'objProcesso' => [
                 'autonum'       => $registro->autonum,
-                'categoria'     => extrairLinha21($registro->doc_txt),
+                'categoria'     => extrairLinha($registro->doc_txt, 21),
+                'proprietario'     => extrairLinha($registro->doc_txt, 8),
                 'processo'      => $registro->processo ?? '',
                 'assunto'       => $registro->assunto ?? '',
                 'dtEmissao'     => $registro->dtEmissao ?? '',
@@ -247,6 +290,7 @@ class Processos extends Controller
                 'areaTotal'     => $areaTotal,
                 'areaConstruida'     => $areaConstruida,
                 'areaComputavel'     => $areaComputavel,
+                'zoneamento'    => $txtZoneamento
             ]
         ]);
     }

@@ -32,4 +32,8 @@ Route::get('/validacao', function () {
     return view('validacao', compact('nome', 'rf'));
 });
 
+Route::get('/tutorial', function () {
+    return view('tutorial');
+});
+
 
