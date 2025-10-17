@@ -104,22 +104,22 @@
                     <div class="row g-1">
                         <div class="container mt-4">
                             <div class="row g-3">
-                                <div class="col">
+                                <div class="col" v-if="deveExibirAreas">
                                     <label for="areaTotal" class="form-label">Área Total</label>
                                     <input type="number" class="form-control" id="areaTotal" v-model="objProcesso.areaTotal" min="0" step="0.01">
                                 </div>
 
-                                <div class="col">
+                                <div class="col" v-if="deveExibirAreas">
                                     <label for="areaConstruida" class="form-label">Área Construída</label>
                                     <input type="number" class="form-control" id="areaConstruida" v-model="objProcesso.areaConstruida" min="0" step="0.01">
                                 </div>
 
-                                <div class="col">
+                                <div class="col" v-if="deveExibirAreas">
                                     <label for="areaComputavel" class="form-label">Área Computável</label>
                                     <input type="number" class="form-control" id="areaComputavel" v-model="objProcesso.areaComputavel" min="0" step="0.01">
                                 </div>
 
-                                <div class="col-2">
+                                <div class="col-2" v-if="false">
                                     <label class="form-label">Subprefeitura</label>
                                     <select class="form-select" v-model="objProcesso.subprefeitura">
                                         <option disabled value="">Selecione</option>
@@ -127,12 +127,18 @@
                                     </select>
                                 </div>
 
-                                <div class="col-2">
-                                    <label for="zoneamento" class="form-label">Zoneamento Atual</label>
-                                    <input type="text" class="form-control" id="zoneamento" v-model="objProcesso.zoneamento">
+                                <!-- USO DO IMÓVEL -->
+                                <div class="col">
+                                    <label for="usoDoImovel" class="form-label">Uso do Imóvel</label>
+                                    <input type="text" class="form-control" id="usoDoImovel" v-model="objProcesso.usoDoImovel" :title="objProcesso.usoDoImovel">
                                 </div>
 
                                 <div class="col-2">
+                                    <label for="zoneamento" class="form-label" title="Zoneamento vigente">Zoneamento</label>
+                                    <input type="text" class="form-control" id="zoneamento" v-model="objProcesso.zoneamento">
+                                </div>
+
+                                <div class="col-4">
                                     <label for="proprietario" class="form-label">Proprietário</label>
                                     <input type="text" class="form-control" id="proprietario" :title="objProcesso.proprietario" v-model="objProcesso.proprietario">
                                 </div>
@@ -198,8 +204,10 @@
             return {
                 SUBPREFEITURAS: ['Aricanduva', 'Butantã', 'Campo Limpo', 'Capela do Socorro', 'Casa Verde', 'Cidade Ademar', 'Cidade Tiradentes', 'Ermelino Matarazzo', 'Freguesia/Brasilândia', 'Guaianases', 'Ipiranga', 'Itaim Paulista', 'Itaquera', 'Jabaquara', 'Jaçanã/Tremembé', 'Lapa', 'MBoi Mirim', 'Mooca', 'Parelheiros', 'Penha', 'Perus/Anhaguera', 'Pinheiros', 'Pirituba/Jaraguá', 'Santana/Tucuruvi', 'Santo Amaro', 'São Mateus', 'São Miguel', 'Sapopemba', 'Sé', 'Vila Maria/Vila Guilherme', 'Vila Mariana', 'Vila Prudente'],
 
-                opcoesUniCatUsoR: ['EHIS', 'EHMP', 'HIS', 'HMP', 'R1', 'R2'],
-                opcoesUniCatUsoNR: ['nRa', 'nR1', 'nR2', 'nR3', 'Ind 1a', 'Ind 1b', 'Ind 2', 'Ind 3', 'INFRA'],
+                // opcoesUniCatUsoR: ['EHIS', 'EHMP', 'HIS', 'HMP', 'R1', 'R2'],
+                // opcoesUniCatUsoNR: ['nRa', 'nR1', 'nR2', 'nR3', 'Ind 1a', 'Ind 1b', 'Ind 2', 'Ind 3', 'INFRA'],
+                opcoesUniCatUsoR: ['HIS', 'HMP', 'R1', 'R2'],
+                opcoesUniCatUsoNR: ['nR1', 'nR2'],
                 opcoesUniCatUso: [],
 
                 termosDestaque: {
@@ -217,6 +225,8 @@
                     'ATUAL': 'destaque-bom',
                     'LEI': 'destaque-3',
                     'DECRETO': 'destaque-3',
+                    'USO DO IMÓVEL': 'destaque-3',
+                    'USO DO IMOVEL': 'destaque-3',
                     'R1': 'destaque-4',
                     'R2': 'destaque-4',
                     'HMP': 'destaque-4',
@@ -254,6 +264,7 @@
                         valor: null
                     }],
                     amparoLegal: 'XPTO',
+                    usoDoImovel: 'XPTO',
                     constaOutorga: false,
                     areaTotal: 0,
                     areaConstruida: 0,
@@ -580,6 +591,7 @@
         margin-top: 2em;
         border: 1px solid black;
     }
+
     #container-principal {
         max-width: 1200px;
     }

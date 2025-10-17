@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class Processos extends Controller
 {
@@ -83,6 +84,7 @@ class Processos extends Controller
             'validando'          => 0,
             'validadoEm'         => now(),
             'amparoLegal'        => $data['amparoLegal'] ?? null,
+            'usoDoImovel'        => $data['usoDoImovel'] ?? null,
             'constaOutorga'      => isset($data['constaOutorga']) && $data['constaOutorga'] ? 1 : 0,
             'P_QTD_TERR_REAL'    => number_format((float) ($data['areaTotal'] ?? 0), 2, '.', ''),
             'P_QTD_AREA_CNSR'    => number_format((float) ($data['areaConstruida'] ?? 0), 2, '.', ''),
@@ -193,6 +195,21 @@ class Processos extends Controller
             return null;
         }
 
+        function extrairUsoDoImovel(string $texto): ?string
+        {
+            $texto = strtoupper($texto);
+            // Captura "USO DO IMOVEL:" seguido de qualquer conteúdo, seja na mesma linha ou na próxima
+            if (preg_match('/USO DO IMOVEL\s*:\s*(?:\r?\n)?(.*)/i', $texto, $matches)) {
+                return trim($matches[1]);
+            }
+
+            if (preg_match('/USO DO IMÓVEL\s*:\s*(?:\r?\n)?(.*)/i', $texto, $matches)) {
+                return trim($matches[1]);
+            }
+
+            return null;
+        }
+
         function extrairZoneamento($texto)
         {
             // Primeiro tenta encontrar "ZONEAMENTO ATUAL"
@@ -233,11 +250,21 @@ class Processos extends Controller
 
         $txtAmparoLegal = '';
         $txtZoneamento = '';
+        $txtUsoDoImovel = '';
 
         try {
             $txtAmparoLegal = extrairAmparoLegal($registro->doc_txt);
             if (empty($txtAmparoLegal)) {
                 $txtAmparoLegal = extrairAmparoLegal($docCodReferenciado->doc_txt);
+            }
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
+
+        try {
+            $txtUsoDoImovel = extrairUsoDoImovel($registro->doc_txt);
+            if (empty($txtUsoDoImovel)) {
+                $txtUsoDoImovel = extrairUsoDoImovel($docCodReferenciado->doc_txt);
             }
         } catch (\Throwable $th) {
             //throw $th;
@@ -290,8 +317,22 @@ class Processos extends Controller
                 'areaTotal'     => $areaTotal,
                 'areaConstruida'     => $areaConstruida,
                 'areaComputavel'     => $areaComputavel,
+                'usoDoImovel'   => $txtUsoDoImovel,
                 'zoneamento'    => $txtZoneamento
             ]
         ]);
+    }
+
+
+    public function exportarValidados()
+    {
+        $levantamentos = DB::table('levantamentohis')
+            ->where(function ($query) {
+                $query->where('validado', 1)
+                    ->orWhere('validando', 1);
+            })
+            ->get();
+
+        // return Excel::download(new LevantamentoExport($levantamentos), 'levantamentos.xlsx');
     }
 }
