@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ValidadosExport;
 
@@ -12,19 +13,13 @@ class Processos extends Controller
     /// GET
     public function dadosDashboard()
     {
+
+        $path = storage_path('app/idsHisHmp1419.txt');
+        $ids = array_filter(array_map('trim', file($path)));
         $dados = DB::table('levantamentohis')
-            ->whereIn('assunto', ['Certificado de Conclusao'])
-            ->where(function ($query) {
-                $query->where('doc_txt', 'like', '%H.M.P%')
-                    ->orWhere('doc_txt', 'like', '%HMP%')
-                    ->orWhere('doc_txt', 'like', '%H M P%')
-                    ->orWhere('doc_txt', 'like', '%HIS%')
-                    ->orWhere('doc_txt', 'like', '%H I S%')
-                    ->orWhere('doc_txt', 'like', '%H.I.S%');
-            })
-            ->whereBetween('dtEmissao', ['2014-01-01', '2019-08-14'])
+            ->whereIn('autonum', $ids)
             ->selectRaw('
-            COUNT(*) as totalHisHmp,
+            COUNT(autonum) as totalHisHmp,
             SUM(CASE WHEN validando = 1 THEN 1 ELSE 0 END) as totalValidando,
             SUM(CASE WHEN validado = 1 THEN 1 ELSE 0 END) as totalValidado
         ')
@@ -130,8 +125,12 @@ class Processos extends Controller
         ];
 
         // Primeiro busca processo que esteja em validacao pendente
+        $path = storage_path('app/idsHisHmp1419.txt');
+        $ids = array_filter(array_map('trim', file($path)));
+        
         $registro = DB::table('levantamentohis')
             ->select($camposSelect)
+            ->whereIn('autonum', $ids)
             ->where('validando', 1)
             ->where('rfValidador', $rfValidador)
             ->first();
@@ -140,20 +139,9 @@ class Processos extends Controller
             // Busca o primeiro registro com validando = false e validado = false, ordenado por dtEmissao desc
             $registro = DB::table('levantamentohis')
                 ->select($camposSelect)
+                ->whereIn('autonum', $ids)
                 ->whereNull('validando')
                 ->whereNull('validado')
-                ->whereIn('assunto', [
-                    'Certificado de Conclusao'
-                ])
-                ->where(function ($query) {
-                    $query->where('doc_txt', 'like', '%H.M.P%')
-                        ->orWhere('doc_txt', 'like', '%HMP%')
-                        ->orWhere('doc_txt', 'like', '%H M P%')
-                        ->orWhere('doc_txt', 'like', '%HIS%')
-                        ->orWhere('doc_txt', 'like', '%H I S%')
-                        ->orWhere('doc_txt', 'like', '%H.I.S%');
-                })
-                ->whereBetween('dtEmissao', ['2014-01-01', '2019-08-14'])
                 ->orderByDesc('dtEmissao')
                 ->limit(1)
                 ->first();

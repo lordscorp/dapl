@@ -248,6 +248,7 @@
                     'PROPRIETÁRIO': 'destaque-5',
                 },
 
+                deveExibirAreas: false,
                 isCarregando: false,
                 msgStatus: 'Carregando...',
 

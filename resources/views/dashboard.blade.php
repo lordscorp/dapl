@@ -64,7 +64,7 @@
                     <div class="col-4">
                         <div class="card">
                             <div class="card-header">Validados</div>
-                            <a href="api/exportarValidados">
+                            <a href="api/exportarValidados" style="text-decoration: none !important;">
                                 <div class="card-body big-numbers btn-outline-success text-center">@{{totalValidado}}</div>
                             </a>
                         </div>
