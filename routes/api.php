@@ -9,4 +9,4 @@ Route::get('/processoAValidar', [Processos::class, 'processoAValidar']);
 Route::get('/dadosDashboard', [Processos::class, 'dadosDashboard']);
 Route::get('/mockDadosDashboard', [Processos::class, 'mockDadosDashboard']);
 Route::post('/validarProcesso', [Processos::class, 'validarProcesso']);
-Route::get('/exportarValidados', [Processos::class, 'exportar']);
+Route::get('/exportarValidados', [Processos::class, 'exportarValidados']);

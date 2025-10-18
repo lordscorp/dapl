@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ValidadosExport;
 
 class Processos extends Controller
 {
@@ -333,6 +334,6 @@ class Processos extends Controller
             })
             ->get();
 
-        // return Excel::download(new LevantamentoExport($levantamentos), 'levantamentos.xlsx');
+        return Excel::download(new ValidadosExport($levantamentos), 'processosValidados.xlsx');
     }
 }

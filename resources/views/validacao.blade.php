@@ -326,6 +326,7 @@
                         })
                     }
                     this.procurarCatUso();
+                    this.procurarOutorga();
                     this.objProcesso.blocos = this.procurarBlocos();
                     this.objProcesso.pavimentos = this.procurarPavimentos();
                     this.atribuirAreas();
@@ -413,6 +414,20 @@
                 }
             },
 
+            procurarOutorga() {
+                try {
+                    let contemOutorga = /outorga/i.test(this.objProcesso.docConclusao);
+                    if (!contemOutorga) {
+                        contemOutorga = /outorga/i.test(this.objProcesso.docCodReferenciado);
+                    }
+                    
+                    this.objProcesso.contemOutorga = contemOutorga;
+                }
+                catch(err) {
+                    console.warn("procurar outorga", err);
+                }
+            },
+
             procurarUnidades() {
                 try {
                     let numUnidades = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docConclusao, 'UNIDADE');
@@ -435,10 +450,16 @@
                         numBlocos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docConclusao, 'BLOCO');
                     }
                     if (!numBlocos) {
+                        numBlocos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docConclusao, 'TORRE');
+                    }
+                    if (!numBlocos) {
                         numBlocos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docCodReferenciado, 'PREDIO');
                     }
                     if (!numBlocos) {
                         numBlocos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docCodReferenciado, 'BLOCO');
+                    }
+                    if (!numBlocos) {
+                        numBlocos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docCodReferenciado, 'TORRE');
                     }
                     // DEPOIS DA PALAVRA
                     if (!numBlocos) {
@@ -448,10 +469,16 @@
                         numBlocos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docConclusao, 'BLOCO');
                     }
                     if (!numBlocos) {
+                        numBlocos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docConclusao, 'TORRE');
+                    }
+                    if (!numBlocos) {
                         numBlocos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docCodReferenciado, 'PREDIO');
                     }
                     if (!numBlocos) {
                         numBlocos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docCodReferenciado, 'BLOCO');
+                    }
+                    if (!numBlocos) {
+                        numBlocos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docCodReferenciado, 'TORRE');
                     }
                     // FIM DEPOIS DA PALAVRA
                     if (!numBlocos) {
