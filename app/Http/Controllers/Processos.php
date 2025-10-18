@@ -161,13 +161,6 @@ class Processos extends Controller
                 ];
             });
 
-
-        // function extrairLinha21($texto)
-        // {
-        //     $linhas = preg_split('/\r\n|\r|\n/', $texto);
-        //     return count($linhas) >= 21 ? trim($linhas[20]) : null;
-        // }
-
         function extrairLinha($texto, $linha)
         {
             $linhas = preg_split('/\r\n|\r|\n/', $texto);

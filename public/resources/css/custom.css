@@ -80,3 +80,22 @@ h4 {
     font-size: 5rem;
     font-weight: bold;
 }
+
+
+.blink {
+    animation: blink-animation 0.4s ease-in-out;
+}
+
+@keyframes blink-animation {
+    0% {
+        background-color: #fff3cd;
+    }
+
+    50% {
+        background-color: #ffeeba;
+    }
+
+    100% {
+        background-color: #fff3cd;
+    }
+}

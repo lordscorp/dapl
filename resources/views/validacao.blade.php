@@ -79,7 +79,7 @@
                                     </select>
                                 </div>
                                 <div class="col">
-                                    <input type="number" class="form-control" v-model="item.valor">
+                                    <input type="number" class="form-control uniCatInput" v-model="item.valor">
                                 </div>
                             </div>
                             <button class="btn btn-sm btn-outline-primary my-1" @click="adicionarUniCatUso" v-if="podeAdicionarUniCatUso">
@@ -188,6 +188,49 @@
             </div>
         </div>
 
+        <div
+            class="position-fixed bottom-0 end-0 m-3"
+            :class="{ 'p-3 border rounded shadow bg-light': expandida }"
+            :style="estiloBotaoCalculadora">
+            <div class="bg-primary text-white text-center p-2" style="cursor: pointer;" @click="toggleCalc">
+                Calculadora
+            </div>
+
+            <div v-if="expandida" class="mt-2">
+                <div class="row">
+                    <div class="col-8">
+                        <div v-for="(valor, index) in valoresCalc" :key="index" class="mb-2">
+                            <input
+                                type="number"
+                                :id="'input'+index"
+                                class="form-control calcInput"
+                                v-model.number="valoresCalc[index]"
+                                @keydown.enter.prevent="handleEnter(index)"
+                                @keydown="verificaTecla($event, index)" />
+                        </div>
+                    </div>
+                    <div class="col">
+                        <button @click="adicionarCampo" class="btn btn-success w-100 h-100 p-2 mb-2"><strong>+</strong></button>
+                    </div>
+                </div>
+                <div class="row my-3">
+                    <div class="col">
+                        <div
+                            type="text"
+                            class="form-control bg-gray"
+                            @click="inserirValorCalculado"
+                            style="cursor: pointer;"
+                            placeholder="Total">
+                            @{{somaTotal}} <span style="font-size: small;">(clique aqui para copiar)</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+
     </div>
 </body>
 <script src="../resources/js/bootstrap.bundle.min.js"></script>
@@ -251,6 +294,8 @@
                 deveExibirAreas: false,
                 isCarregando: false,
                 msgStatus: 'Carregando...',
+                expandida: false,
+                valoresCalc: [],
 
                 objProcesso: {
                     processo: "1234",
@@ -278,13 +323,22 @@
             }
         },
         computed: {
+            estiloBotaoCalculadora() {
+                let largura = this.expandida ? 250 : 100;
+                return `width: ${largura}px;`;
+            },
             podeAdicionarUniCatUso() {
                 const ultimo = this.objProcesso.uniCatUso[this.objProcesso.uniCatUso.length - 1];
                 if (!ultimo) {
                     return true;
                 }
                 return ultimo.nome && ultimo.valor !== null;
+            },
+
+            somaTotal() {
+                return this.valoresCalc.reduce((acc, val) => acc + (parseFloat(val) || 0), 0)
             }
+
         },
         mounted() {
             this.carregarOptions();
@@ -382,6 +436,71 @@
                 return match ? parseInt(match[1], 10) : null;
             },
 
+            //#region CALCULADORA
+            toggleCalc() {
+                this.expandida = !this.expandida;
+                if (this.valoresCalc.length < 1) {
+                    this.adicionarCampo()
+                }
+                if (!this.expandida) {
+                    this.valoresCalc = [];
+                }
+            },
+            adicionarCampo() {
+
+                this.valoresCalc.push(0)
+                this.$nextTick(() => {
+                    const novoIndex = this.valoresCalc.length - 1
+                    const novoInput = document.querySelector(`#input${novoIndex}`);
+                    if (novoInput) {
+                        novoInput.focus()
+                    }
+                })
+
+            },
+
+            handleEnter(index) {
+                const valor = parseFloat(this.valoresCalc[index])
+                if (!isNaN(valor)) {
+                    this.adicionarCampo()
+                }
+            },
+
+            verificaTecla(e, index) {
+                if (e.key === '+') {
+                    e.preventDefault()
+                    this.handleEnter(index)
+                }
+            },
+            inserirValorCalculado() {
+                console.log("inserirValorCalculado")
+                this.piscarInputs();
+
+                if (this.objProcesso.uniCatUso.length === 1) {
+                    this.objProcesso.uniCatUso[0].valor = this.somaTotal;
+                    this.$forceUpdate();
+                    return;
+                }
+
+                this.objProcesso.uniCatUso.forEach(entrada => {
+                    if (!entrada.valor) {
+                        entrada.valor = this.somaTotal;
+                    }
+                });
+                this.$forceUpdate();
+            },
+            piscarInputs() {
+                let inputs = document.querySelectorAll('.uniCatInput');
+                inputs.forEach(input => {
+                    input.classList.add('blink')
+                    setTimeout(() => {
+                        input.classList.remove('blink')
+                    }, 400)
+
+                });
+            },
+            //#endregion
+
             melhorCorrespondenciaCatUso(texto) {
                 try {
                     let txtRetorno = texto.toUpperCase().replace(/[.\s]/g, '');
@@ -417,14 +536,32 @@
 
             procurarOutorga() {
                 try {
-                    let contemOutorga = /outorga/i.test(this.objProcesso.docConclusao);
+                    const {
+                        docConclusao,
+                        docCodReferenciado,
+                        docsRelacionados
+                    } = this.objProcesso;
+
+                    let contemOutorga = /outorga/i.test(docConclusao || '');
+
                     if (!contemOutorga) {
-                        contemOutorga = /outorga/i.test(this.objProcesso.docCodReferenciado);
+                        contemOutorga = /outorga/i.test(docCodReferenciado || '');
                     }
-                    
-                    this.objProcesso.contemOutorga = contemOutorga;
-                }
-                catch(err) {
+
+                    if (!contemOutorga && Array.isArray(docsRelacionados)) {
+                        contemOutorga = docsRelacionados.some(doc => {
+                            const texto = doc.doc_txt || '';
+                            return /outorga/i.test(texto);
+                        });
+
+                        if (contemOutorga) {
+                            this.objProcesso.constaOutorga = contemOutorga;
+                            return;
+                        }
+                    }
+
+                    this.objProcesso.constaOutorga = contemOutorga;
+                } catch (err) {
                     console.warn("procurar outorga", err);
                 }
             },
@@ -589,7 +726,7 @@
                     if (!response.ok) throw new Error('Erro na requisição');
 
                     const data = await response.json();
-                    window.alert('Validado com sucesso!');
+                    // window.alert('Validado com sucesso!');
                     window.location.reload();
 
                 } catch (error) {
@@ -622,5 +759,34 @@
 
     #container-principal {
         max-width: 1200px;
+    }
+
+    #calculadora {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 200px;
+        height: 50px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        background-color: #f8f9fa;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+    }
+
+    #calculadora.expandido {
+        height: 200px;
+        width: 300px;
+    }
+
+    #conteudo-calc {
+        padding: 10px;
+        display: none;
+    }
+
+    #calculadora.expandido #conteudo-calc {
+        display: block;
     }
 </style>
