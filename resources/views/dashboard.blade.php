@@ -63,8 +63,8 @@
                     </div>
                     <div class="col-4">
                         <div class="card">
-                            <div class="card-header">Validados</div>
-                            <a href="api/exportarValidados" style="text-decoration: none !important;">
+                            <div class="card-header">Validados (clique para exportar)</div>
+                            <a href="api/exportarValidados" title="Clique para exportar a planilha" style="text-decoration: none !important;">
                                 <div class="card-body big-numbers btn-outline-success text-center">@{{totalValidado}}</div>
                             </a>
                         </div>
@@ -74,6 +74,21 @@
                     <div class="col">
                         <div class="progress" style="height: 50px;">
                             <div class="progress-bar" role="progressbar" :style="txtLargura(percentualConclusaoHisHmp)" aria-valuenow="percentualConclusaoHisHmp" aria-valuemin="0" aria-valuemax="100">@{{percentualConclusaoHisHmp}} %</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row my-4">
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-header">Validações</div>
+                            <div class="card-body">
+                                <table class="table">
+                                    <tr v-for="(total, rf) in validadores">
+                                        <td>@{{rf}}</td>
+                                        <td>@{{total}}</td>
+                                    </tr>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -99,6 +114,7 @@
                 totalHisHmp: 0,
                 totalValidando: 0,
                 totalValidado: 0,
+                validadores: [],
             }
         },
         methods: {
@@ -119,6 +135,7 @@
                     this.totalHisHmp = data.totalHisHmp;
                     this.totalValidando = data.totalValidando;
                     this.totalValidado = data.totalValidado;
+                    this.validadores = data.validadores;
 
                     this.$forceUpdate();
                 } catch (error) {

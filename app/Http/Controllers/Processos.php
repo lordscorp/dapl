@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+// use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ValidadosExport;
 
@@ -25,7 +25,22 @@ class Processos extends Controller
         ')
             ->first();
 
-        return response()->json($dados);
+        // return response()->json($dados);
+
+
+        $validadores = DB::table('levantamentohis')
+            ->whereIn('autonum', $ids)
+            ->whereNotNull('rfValidador')
+            ->select('rfValidador', DB::raw('COUNT(*) as total'))
+            ->groupBy('rfValidador')
+            ->orderByDesc('total')
+            ->pluck('total', 'rfValidador');
+
+        // Converte stdClass para array e adiciona os validadores
+        $dadosArray = (array) $dados;
+        $dadosArray['validadores'] = $validadores;
+
+        return response()->json($dadosArray);
     }
 
     public function mockDadosDashboard()
@@ -127,7 +142,7 @@ class Processos extends Controller
         // Primeiro busca processo que esteja em validacao pendente
         $path = storage_path('app/idsHisHmp1419.txt');
         $ids = array_filter(array_map('trim', file($path)));
-        
+
         $registro = DB::table('levantamentohis')
             ->select($camposSelect)
             ->whereIn('autonum', $ids)
@@ -308,13 +323,13 @@ class Processos extends Controller
 
     public function exportarValidados()
     {
-        $levantamentos = DB::table('levantamentohis')
+        $registros = DB::table('levantamentohis')
             ->where(function ($query) {
                 $query->where('validado', 1)
                     ->orWhere('validando', 1);
             })
-            ->get();
+            ->get(['processo', 'codigoPedido', 'assunto', 'dtEmissao', 'codigoPedidoReferenciado', 'documentoReferenciado', 'sql_incra', 'doc_txt', 'validando', 'validado', 'validadoEm', 'rfValidador', 'blocos', 'pavimentos', 'amparoLegal', 'usoDoImovel', 'constaOutorga', 'zoneamento', 'num_HIS', 'num_HMP', 'num_R1', 'num_R2', 'num_nR1', 'num_nR2', 'proprietario']);
 
-        return Excel::download(new ValidadosExport($levantamentos), 'processosValidados.xlsx');
+        return Excel::download(new ValidadosExport($registros), 'processosValidados.xlsx');
     }
 }
