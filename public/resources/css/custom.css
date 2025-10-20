@@ -65,6 +65,15 @@ h4 {
     font-weight: bold;
 }
 
+.destaque-outorga {
+    background-color: #ddff10;
+    color: #040000;
+    font-weight: bold;
+    border: 1px solid #000000;
+    border-radius: 10px;
+    padding: 1px 8px;
+}
+
 .destaque-ruim {
     color: red;
     font-weight: bold;

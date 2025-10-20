@@ -53,7 +53,7 @@
                         <h3>Processo: @{{ objProcesso.processo }} - @{{ objProcesso.assunto }}</h3>
                     </div>
                     <h4>Categoria identificada: @{{objProcesso.categoria}}</h4>
-                    <div id="sqlincra" class="mr-1">SQL: @{{ objProcesso.sqlIncra}}</div>
+                    <div id="sqlincra" :title="objProcesso.sqlIncra" style="overflow: auto; max-height: 3em; max-width: 30em;" class="mr-1">SQL: @{{ objProcesso.sqlIncra}}</div>
                     <hr>
                     <div class="row g-1">
                         <div class="col-2" v-if="false">
@@ -95,7 +95,7 @@
                         <div class="col-2">
                             <div class="form-check">
                                 <label class="form-check-label" for="constaOutorga">
-                                    Consta Outorga?
+                                    Consta <span>Outorga</span>?
                                 </label>
                                 <input class="form-check-input" type="checkbox" id="constaOutorga" v-model="objProcesso.constaOutorga">
                             </div>
@@ -258,11 +258,12 @@
                     'ANDAR': 'destaque-1',
                     'BLOCO': 'destaque-1',
                     'PREDIO': 'destaque-1',
+                    'TORRE': 'destaque-1',
                     'PRÉDIO': 'destaque-1',
                     'UNIDADES': 'destaque-1',
                     'ÁREA': 'destaque-2',
                     'AREA': 'destaque-2',
-                    'OUTORGA': 'destaque-2',
+                    'OUTORGA': 'destaque-outorga',
                     'ZONEAMENTO': 'destaque-2',
                     'ANTERIOR': 'destaque-ruim',
                     'ATUAL': 'destaque-bom',
@@ -542,16 +543,16 @@
                         docsRelacionados
                     } = this.objProcesso;
 
-                    let contemOutorga = /outorga/i.test(docConclusao || '');
+                    let contemOutorga = /onerosa/i.test(docConclusao || '');
 
                     if (!contemOutorga) {
-                        contemOutorga = /outorga/i.test(docCodReferenciado || '');
+                        contemOutorga = /onerosa/i.test(docCodReferenciado || '');
                     }
 
                     if (!contemOutorga && Array.isArray(docsRelacionados)) {
                         contemOutorga = docsRelacionados.some(doc => {
                             const texto = doc.doc_txt || '';
-                            return /outorga/i.test(texto);
+                            return /onerosa/i.test(texto);
                         });
 
                         if (contemOutorga) {
@@ -752,7 +753,7 @@
         width: 30px;
         height: 30px;
         position: absolute;
-        right: 4em;
+        right: 6em;
         margin-top: 2em;
         border: 1px solid black;
     }
