@@ -160,6 +160,10 @@ class Processos extends Controller
                 ->orderByDesc('dtEmissao')
                 ->limit(1)
                 ->first();
+
+            if (!$registro) {
+                return response()->json([]);
+            }
         }
 
         $docsRelacionados = DB::table('levantamentohis')
@@ -183,6 +187,22 @@ class Processos extends Controller
         }
 
         function extrairAmparoLegal(string $texto): ?string
+        {
+            // Captura o bloco após "AMPARO LEGAL:" até a próxima linha em branco
+            if (preg_match('/AMPARO LEGAL\s*:\s*(?:\r?\n)?((?:(?!\r?\n\r?\n).*\S.*(?:\r?\n)?)+)/i', $texto, $matches)) {
+                $conteudo = trim($matches[1]);
+
+                // Remove tudo antes da primeira ocorrência da palavra "LEI"
+                if (preg_match('/LEI.*/is', $conteudo, $leiMatch)) {
+                    return trim($leiMatch[0]);
+                }
+            }
+
+            return null;
+        }
+
+
+        function extrairAmparoLegal_bkp(string $texto): ?string
         {
             // Captura "AMPARO LEGAL:" seguido de qualquer conteúdo, seja na mesma linha ou na próxima
             if (preg_match('/AMPARO LEGAL\s*:\s*(?:\r?\n)?(.*)/i', $texto, $matches)) {

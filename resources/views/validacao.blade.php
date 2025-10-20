@@ -47,7 +47,10 @@
                     </div>
                 </div>
             </div>
-            <div class="card-body px-4" v-show="!isCarregando">
+            <div class="card-body" v-show="!isCarregando && !possuiConteudo">
+                <h2 class="text-center">Não há processos pendentes de validação</h2>
+            </div>
+            <div class="card-body px-4" v-show="!isCarregando && possuiConteudo">
                 <div id="fixada" style="position: sticky; top: 0; background-color: white; z-index: 10; padding: 10px; border-bottom: 1px solid #ccc;">
                     <div class="card-title">
                         <h3>Processo: @{{ objProcesso.processo }} - @{{ objProcesso.assunto }}</h3>
@@ -298,6 +301,8 @@
                 expandida: false,
                 valoresCalc: [],
 
+                possuiConteudo: false,
+
                 objProcesso: {
                     processo: "1234",
                     assunto: "Assunto X",
@@ -368,12 +373,17 @@
                 try {
                     this.isCarregando = true;
                     const response = await fetch(`api/processoAValidar?rfValidador=${encodeURIComponent(rfValidador)}`);
-                    if (!response.ok) throw new Error('Erro ao buscar processo');
+                    if (!response.ok) throw new Error(response);
 
                     const data = await response.json();
-                    this.objProcesso = data.objProcesso;
+                    if (!data.objProcesso) {
+                        this.possuiConteudo = false;
+                        this.isCarregando = false;
+                        return;
+                    }
 
-                    // this.objProcesso.categoria = this.extrairLinha21(data.objProcesso.docAprovacao);
+                    this.objProcesso = data.objProcesso;
+                    this.possuiConteudo = true;
 
                     if (!this.objProcesso.uniCatUso) {
                         this.objProcesso.uniCatUso.push({
@@ -386,6 +396,7 @@
                     this.objProcesso.blocos = this.procurarBlocos();
                     this.objProcesso.pavimentos = this.procurarPavimentos();
                     this.atribuirAreas();
+                    // this.sanitizarAmparoLegal();
                     // this.procurarProprietario();
 
                     this.isCarregando = false;
@@ -694,6 +705,15 @@
             },
             procurarAreas() {
                 // this.areaComputavel = 
+            },
+
+            sanitizarAmparoLegal() {
+                try{ 
+                    this.objProcesso.amparoLegal = this.objProcesso.amparoLegal.replace("1) CERTIFICADO DE CONCLUSAO TOTAL DE EDIFICACAO CONCEDIDO  NOS  TERMOS\r DA ", "");
+                }
+                catch(err) {
+                    console.warn("Erro ao limpar amparo legal:", err);
+                }
             },
 
             traduzir(campo) {
