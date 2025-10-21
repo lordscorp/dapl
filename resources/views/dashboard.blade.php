@@ -49,19 +49,25 @@
             </div>
             <div class="card-body" v-show="!isCarregando">
                 <div class="row">
-                    <div class="col-4">
+                    <div class="col-3">
                         <div class="card">
                             <div class="card-header">Processos HIS/HMP 2014 a 2019</div>
                             <div class="card-body big-numbers btn-outline-dark text-center">@{{totalHisHmp}}</div>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-3">
                         <div class="card">
                             <div class="card-header">Em validação</div>
                             <div class="card-body big-numbers btn-outline-info text-center">@{{totalValidando}}</div>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-3">
+                        <div class="card">
+                            <div class="card-header">Pendentes</div>
+                            <div class="card-body big-numbers btn-outline-danger text-center">@{{totalPendente}}</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
                         <div class="card">
                             <div class="card-header">Validados (clique para exportar)</div>
                             <a href="api/exportarValidados" title="Clique para exportar a planilha" style="text-decoration: none !important;">
@@ -113,6 +119,7 @@
                 msgStatus: "Carregando...",
                 totalHisHmp: 0,
                 totalValidando: 0,
+                totalPendente: 0,
                 totalValidado: 0,
                 validadores: [],
             }
@@ -134,6 +141,7 @@
 
                     this.totalHisHmp = data.totalHisHmp;
                     this.totalValidando = data.totalValidando;
+                    this.totalPendente = data.totalPendente;
                     this.totalValidado = data.totalValidado;
                     this.validadores = data.validadores;
 

@@ -21,6 +21,7 @@ class Processos extends Controller
             ->selectRaw('
             COUNT(autonum) as totalHisHmp,
             SUM(CASE WHEN validando = 1 THEN 1 ELSE 0 END) as totalValidando,
+            SUM(CASE WHEN validado = 0 THEN 1 ELSE 0 END) as totalPendente,
             SUM(CASE WHEN validado = 1 THEN 1 ELSE 0 END) as totalValidado
         ')
             ->first();
@@ -151,6 +152,21 @@ class Processos extends Controller
             ->first();
 
         if (!$registro) {
+            $registro = DB::table('levantamentohis')
+                ->select($camposSelect)
+                ->whereIn('autonum', $ids)
+                ->where(function ($query) {
+                    $query->where(function ($q) {
+                        $q->whereNull('validando')
+                            ->orWhere('validando', 0);
+                    })->where(function ($q) {
+                        $q->whereNull('validado')
+                            ->orWhere('validado', 0);
+                    });
+                })
+                ->orderByRaw('CAST(P_QTD_AREA_CNSR AS DECIMAL(10,2)) DESC')
+                ->first();
+            /*
             // Busca o primeiro registro com validando = false e validado = false, ordenado por dtEmissao desc
             $registro = DB::table('levantamentohis')
                 ->select($camposSelect)
@@ -160,7 +176,7 @@ class Processos extends Controller
                 ->orderByDesc('dtEmissao')
                 ->limit(1)
                 ->first();
-
+*/
             if (!$registro) {
                 return response()->json([]);
             }
