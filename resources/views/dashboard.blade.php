@@ -58,7 +58,7 @@
                     <div class="col-3">
                         <div class="card">
                             <div class="card-header">Em validação</div>
-                            <div class="card-body big-numbers btn-outline-info text-center">@{{totalValidando}}</div>
+                            <div class="card-body big-numbers btn-outline-info text-center">@{{Object.keys(validando).length}}</div>
                         </div>
                     </div>
                     <div class="col-3">
@@ -97,6 +97,20 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-header">Em validação</div>
+                            <div class="card-body">
+                                <table class="table">
+                                    <tr v-for="validador in validando">
+                                        <td>@{{validador.rfValidador}}</td>
+                                        <td>@{{validador.processo}}</td>
+                                        <td>@{{validador.sql_INCRA}}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <button class="btn btn-warning" v-show="false" @click="carregarDadosDashboard(true)">Exemplo de exibição (dados fictícios)</button>
             </div>
@@ -122,6 +136,7 @@
                 totalPendente: 0,
                 totalValidado: 0,
                 validadores: [],
+                validando: [],
             }
         },
         methods: {
@@ -144,6 +159,7 @@
                     this.totalPendente = data.totalPendente;
                     this.totalValidado = data.totalValidado;
                     this.validadores = data.validadores;
+                    this.validando = data.validando;
 
                     this.$forceUpdate();
                 } catch (error) {

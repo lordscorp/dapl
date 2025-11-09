@@ -28,6 +28,10 @@ class Processos extends Controller
 
         // return response()->json($dados);
 
+        $validando = DB::table('levantamentohis')
+        ->select(['rfValidador', 'autonum', 'processo', 'sql_INCRA'])
+        ->where('validando', 1)
+        ->get();
 
         $validadores = DB::table('levantamentohis')
             ->whereIn('autonum', $ids)
@@ -40,6 +44,7 @@ class Processos extends Controller
         // Converte stdClass para array e adiciona os validadores
         $dadosArray = (array) $dados;
         $dadosArray['validadores'] = $validadores;
+        $dadosArray['validando'] = $validando;
 
         return response()->json($dadosArray);
     }
