@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Processos;
+use App\Http\Controllers\Outorga;
 use App\Http\Controllers\Utils;
 
 Route::get('/processoAValidar', [Processos::class, 'processoAValidar']);
@@ -13,3 +14,5 @@ Route::post('/validarProcesso', [Processos::class, 'validarProcesso']);
 Route::get('/exportarValidados', [Processos::class, 'exportarValidados']);
 Route::get('/consultarSubprefeitura', [Utils::class, 'consultarSubprefeitura']);
 Route::post('/consultarSubprefeituras', [Utils::class, 'consultarSubprefeitura']);
+Route::post('/outorga', [Outorga::class, 'calcularOutorga']);
+Route::get('/consultarValorM2', [Outorga::class, 'consultarValorM2']);

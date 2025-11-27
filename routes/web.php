@@ -16,6 +16,11 @@ Route::get('/', function () {
     }
 
     $nome = $_SESSION['nomeUsuario'] ?? 'Visitante';
+
+    if ($nome === 'Visitante') {
+        return view('tutorial');
+    }
+
     $rf = $_SESSION['IDUsuario'];
 
     return view('dashboard', compact('nome', 'rf'));
