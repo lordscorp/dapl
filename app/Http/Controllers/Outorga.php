@@ -7,6 +7,15 @@ use App\Services\OutorgaService;
 
 class Outorga extends Controller
 {
+    protected $outorgaService;
+
+
+    public function __construct(OutorgaService $outorgaService)
+    {
+        $this->outorgaService = $outorgaService;
+    }
+
+
     public function calcularOutorga(Request $request)
     {
         $validated = $request->validate([
@@ -17,8 +26,9 @@ class Outorga extends Controller
             'fp' => 'required|numeric|min:0|max:1.3',
         ]);
 
-        $service = new OutorgaService();
-        $resultado = $service->calcularOutorga(
+        // $service = new OutorgaService();
+        // $resultado = $service->calcularOutorga(
+        $resultado = $this->outorgaService->calcularOutorga(
             $validated['at'],
             $validated['ac'],
             $validated['v'],
@@ -27,6 +37,45 @@ class Outorga extends Controller
         );
 
         return response()->json(['resultado' => $resultado]);
+    }
+
+
+    /**
+     * Endpoint para buscar processo AD.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function buscarProcessoAD(Request $request)
+    {
+        // $processo = $request->input('processo');
+        $processo = urldecode($request->query('processo'));
+        $fs = $request->input('fs');
+
+        if (!$processo) {
+            return response()->json(['error' => 'Parâmetro "processo" é obrigatório.'], 400);
+        }
+
+        $resultado = $this->outorgaService->buscarProcessoAD($processo, $fs);
+
+        if (!$resultado) {
+            return response()->json(['message' => 'Processo não encontrado.'], 404);
+        }
+
+        return response()->json($resultado);
+    }
+
+
+    public function consultarFatorPlanejamento(Request $request)
+    {
+        $setor = $request->input('setor');
+        $quadra = $request->input('quadra');
+
+        $fp = $this->outorgaService->consultarFatorPlanejamento($setor, $quadra);
+
+        return response()->json([
+            'fp' => $fp
+        ]);
     }
 
 
@@ -44,8 +93,9 @@ class Outorga extends Controller
         $codlog = $request->get('codlog');
 
         // Chama a service
-        $service = new OutorgaService();
-        $valor = $service->consultarValorM2($ano, $sql, $codlog);
+        // $service = new OutorgaService();
+        // $valor = $service->consultarValorM2($ano, $sql, $codlog);
+        $valor = $this->outorgaService->consultarValorM2($ano, $sql, $codlog);
 
         // Retorna resposta JSON
         return response()->json([

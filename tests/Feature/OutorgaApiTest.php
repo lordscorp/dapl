@@ -10,7 +10,7 @@ class OutorgaApiTest extends TestCase
 
     public function test_endpoint_calculo_outorga()
     {
-        $response = $this->postJson('/api/outorga', [
+        $response = $this->postJson('/api/outorga/calcularOutorga', [
             'at' => 1000,
             'ac' => 2000,
             'v' => 1252,
@@ -36,7 +36,7 @@ class OutorgaApiTest extends TestCase
 
 
         //      OBTER v, fs e fp A PARTIR DO SQL e ano
-        $responseVm2 = $this->getJson("/api/consultarValorM2?ano={$ano}&sql={$sql}&codlog={$codlog}");
+        $responseVm2 = $this->getJson("/api/outorga/consultarValorM2?ano={$ano}&sql={$sql}&codlog={$codlog}");
         $responseVm2->assertStatus(200);
 
         $vm2 = $responseVm2->json("valor_m2");
@@ -44,7 +44,7 @@ class OutorgaApiTest extends TestCase
         // Espera-se que o valor do metro quadrado seja 2078.16
         $this->assertEquals(2078.16, $vm2, 'O valor do metro quadrado desse empreendimento em 2021 deve ser 2078.16');
 
-        $response = $this->postJson('/api/outorga', [
+        $response = $this->postJson('/api/outorga/calcularOutorga', [
             'at' => $at,
             'ac' => $ac,
             'v' => $vm2,

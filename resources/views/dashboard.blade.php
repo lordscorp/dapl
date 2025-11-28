@@ -35,6 +35,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="tutorial">Tutorial</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="outorga">Outorga</a>
+                    </li>
                 </ul>
             </div>
             <div class="card-body" v-show="isCarregando">

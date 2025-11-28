@@ -42,6 +42,9 @@
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page">Tutorial</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="outorga">Outorga</a>
+                    </li>
                 </ul>
             </div>
             <div class="card-body">
