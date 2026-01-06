@@ -5,15 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DAPL - Dados Abertos de Processos de Licenciamento</title>
-    <link rel="stylesheet" href="../resources/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../resources/css/custom.css">
+    <link rel="stylesheet" href="resources/css/bootstrap.min.css">
+    <link rel="stylesheet" href="resources/css/custom.css">
 </head>
 
 <body>
     <div id="app">
         <div class="row w-75 mx-auto">
             <div class="col-4">
-                <img src="../resources/img/logo_prefeitura.png" alt="PMSP">
+                <img src="resources/img/logo_prefeitura.png" alt="PMSP">
             </div>
             <div class="col">
                 <h1>DAPL - Dados Abertos de Processos de Licenciamento</h1>
@@ -57,8 +57,15 @@
                         <label class="form-label">Fator Social (Fs)</label>
                         <input type="text" class="form-control" v-model="fs">
                     </div>
+                    <div class="col-2">
+                        <label class="form-label">Paginação</label>
+                        <input type="text" class="form-control" v-model="paginacao">
+                    </div>
                     <div class="col">
                         <button class="btn btn-info btn-lg mt-3" @click="buscarProcessoAD">Buscar</button>
+                    </div>
+                    <div class="col">
+                        <button class="btn btn-info btn-lg mt-3" @click="calcularProcessosAD">Calcular AD</button>
                     </div>
                 </div>
                 <div class="row my-4">
@@ -120,8 +127,8 @@
         </div>
     </div>
 </body>
-<script src="../resources/js/bootstrap.bundle.min.js"></script>
-<script src="../resources/js/vue.global.js"></script>
+<script src="resources/js/bootstrap.bundle.min.js"></script>
+<script src="resources/js/vue.global.js"></script>
 <script>
     const {
         createApp,
@@ -134,6 +141,7 @@
             return {
                 imagemSelecionada: null,
                 fs: 1, // Fator Social
+                paginacao: 1,
                 numProcessoAD: "",
                 processoObj: {
                     numSei: '',
@@ -157,17 +165,6 @@
                         fp: 0.6,
                         sql: '055.097.0032-7',
                         codlog: '200085'
-                    },
-                    {
-                        numSei: '1020.2021/0009574-8',
-                        ano: 2025,
-                        valorOutorga: 159978.64,
-                        areaTerreno: 380,
-                        areaComputavel: 657.49,
-                        vm2: 2078.16,
-                        fp: 0.6,
-                        sql: '055.097.0032-7',
-                        codlog: '200085'
                     }
                 ]
             }
@@ -182,6 +179,23 @@
             async buscarProcessoAD() {
                 try {
                     const response = await fetch(`/api/outorga/buscarProcessoAD?fs=${this.fs}&processo=${encodeURIComponent(this.numProcessoAD)}`);
+
+                    if (!response.ok) {
+                        throw new Error(`Erro: ${response.status}`);
+                    }
+
+                    let processoRaw = await response.json();
+                    this.processoPesquisado = this.sanitizarDadosProcessoAD(processoRaw);
+                    this.erro = null;
+                } catch (error) {
+                    this.erro = error.message;
+                    console.error(error);
+                    this.processoPesquisado = {};
+                }
+            },
+            async calcularProcessosAD() {
+                try {
+                    const response = await fetch(`/api/outorga/calcularProcessosAD?fs=${this.fs}&paginacao=${this.paginacao}`);
 
                     if (!response.ok) {
                         throw new Error(`Erro: ${response.status}`);

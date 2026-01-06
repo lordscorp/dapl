@@ -16,7 +16,7 @@
     <div id="app">
         <div class="row w-75 mx-auto">
             <div class="col-4">
-                <img src="../resources/img/logo_prefeitura.png" alt="PMSP">
+                <img src="resources/img/logo_prefeitura.png" alt="PMSP">
             </div>
             <div class="col">
                 <h1>Validação de Processos</h1>

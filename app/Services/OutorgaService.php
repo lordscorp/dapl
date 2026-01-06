@@ -24,7 +24,8 @@ class OutorgaService
         }
 
         if ($ac < $at) {
-            throw new \InvalidArgumentException('Area computavel menor que area total gera OODC invalida.');
+            // throw new \InvalidArgumentException("Area computavel menor que area total gera OODC invalida. ac, at $ac , $at");
+            return 0;
         }
 
         $c = ($at / $ac) * $v * $fs * $fp;
@@ -57,6 +58,51 @@ class OutorgaService
     }
 
     function consultarValorM2(int $ano, string $sql, string $codlog): ?float
+    {
+        // Reatribui usando a função já existente
+        $sqlFormatado = $this->formatarSQL($sql);
+
+        // Quebra pelo ponto
+        $partes = explode('.', $sqlFormatado);
+
+        // Valida se temos pelo menos 3 partes
+        if (count($partes) < 3) {
+            return null; // ou lançar exceção
+        }
+
+        // Extrai setor e quadra
+        $setor = substr($partes[0], 0, 3);
+        $quadra = substr($partes[1], 0, 3);
+
+        $anoTabela = 0;
+
+        if ($ano >= 2025) {
+            $anoTabela = 2025;
+        } elseif ($ano === 2024) {
+            $anoTabela = 2024;
+        } elseif ($ano === 2023) {
+            $anoTabela = 2023;
+        } elseif ($ano >= 2020 && $ano <= 2022) {
+            $anoTabela = 2020;
+        } else {
+            $anoTabela = 2013;
+        }
+
+
+        // Monta nome da tabela dinamicamente
+        $tabela = 'oodc_quadro14_vm2_' . intval($anoTabela);
+
+        $resultado = DB::table($tabela)
+            ->where('setor', $setor)
+            ->where('quadra', $quadra)
+            ->where('codlog', $codlog)
+            ->value('vm2');
+
+
+        return $resultado !== null ? (float)$resultado : null;
+    }
+
+    function consultarValorM2_old(int $ano, string $sql, string $codlog): ?float
     {
         // Reatribui usando a função já existente
         $sqlFormatado = $this->formatarSQL($sql);
@@ -146,8 +192,8 @@ class OutorgaService
             ->where('cd_setor_fiscal', $setor)
             ->where('cd_quadra_fiscal', $quadra)
             ->first();
-// echo "consultarFatorPlanejamento";
-// var_dump($macroarea);
+        // echo "consultarFatorPlanejamento";
+        // var_dump($macroarea);
         if (!$macroarea) {
             return null;
         }
@@ -156,7 +202,7 @@ class OutorgaService
         $perimetro = trim($macroarea->nm_perimetro_divisao_pde ?? '');
         $macro = trim($macroarea->tx_macro_divisao_pde ?? '');
 
-        $query = DB::table('fatores_planejamento');
+        $query = DB::table('oodc_quadro6_fp');
 
         if ($perimetro !== '') {
             $query->where('perimetro', $perimetro);
@@ -230,6 +276,183 @@ class OutorgaService
         }
 
         return null;
+    }
+
+
+    public function calcularProcessosAD(int $paginacao = 1, float $fs = 1): array
+    {
+        $limite = 100;
+        $offset = ($paginacao - 1) * $limite;
+
+        // Busca com paginação
+        $registros = DB::table('tmp_processos_ad_oodc')
+            ->whereIn('usos_registrados', ['HIS', 'HIS 1', 'HIS 2', 'HIS1'])
+            ->orderBy('dt_autuacao', 'desc')
+            ->offset($offset)
+            ->limit($limite)
+            ->get();
+
+        $alterados = 0;
+        $erros = [];
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($registros as $registro) {
+                try {
+                    // --- Preparação dos dados base ---
+                    $ano = substr(($registro->dt_emissao ?? $registro->dt_autuacao ?? '2014'), 0, 4);
+
+                    // Primeiro SQL da lista (se houver)
+                    $sqlStr = null;
+                    if (!empty($registro->sqls)) {
+                        $partesSql = explode(',', $registro->sqls);
+                        $sqlStr = trim($partesSql[0]) ?: null;
+                    }
+
+                    $codlog = $registro->codlog ?? null;
+
+                    // Valor do m²
+                    $valorM2 = null;
+                    if ($ano && $sqlStr && $codlog) {
+                        $valorM2 = $this->consultarValorM2($ano, $sqlStr, $codlog);
+                    }
+
+                    // Campos para cálculo
+                    $at = $registro->area_do_terreno ?? null;
+                    $ac = $registro->area_edificada_computavel ?? null;
+
+                    // FP (setor/quadr) a partir do SQL
+                    $fp = null;
+                    if ($sqlStr) {
+                        $sqlNum = preg_replace('/\D/', '', $sqlStr); // remove pontos e não dígitos
+                        $setor = substr($sqlNum, 0, 3) ?: null;
+                        $quadra = substr($sqlNum, 3, 3) ?: null;
+
+                        if ($setor !== null && $quadra !== null) {
+                            $fp = $this->consultarFatorPlanejamento($setor, $quadra);
+                        }
+                    }
+
+                    // --- Cálculo da outorga ---
+                    $valorOutorga = null;
+                    if ($at !== null && $ac !== null && $valorM2 !== null && $fp !== null) {
+                        $valorOutorga = $this->calcularOutorga(
+                            (float) $at,
+                            (float) $ac,
+                            (float) $valorM2,
+                            (float) $fs,
+                            (float) $fp
+                        );
+
+                        // Atualiza diretamente a tabela com o valor calculado
+                        $updated = DB::table('tmp_processos_ad_oodc')
+                            ->where('np', $registro->np)
+                            ->update([
+                                'outorga_calculada' => $valorOutorga,
+                            ]);
+
+                        $alterados += $updated;
+                    } else {
+                        // Loga motivo de não cálculo
+                        $erros[] = [
+                            'np'       => $registro->np ?? null,
+                            'mensagem' => 'Campos insuficientes para cálculo de outorga',
+                            'detalhes' => [
+                                'ano'                  => $ano,
+                                'sql'                  => $sqlStr,
+                                'codlog'               => $codlog,
+                                'area_do_terreno'      => $at,
+                                'area_edificada_comp'  => $ac,
+                                'valor_m2'             => $valorM2,
+                                'fp'                   => $fp,
+                            ],
+                        ];
+                    }
+                } catch (\Throwable $e) {
+                    // Erro isolado por registro
+                    $erros[] = [
+                        'np'        => $registro->np ?? null,
+                        'mensagem'  => 'Erro ao processar registro',
+                        'exception' => $e->getMessage(),
+                    ];
+                }
+            }
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            $erros[] = [
+                'mensagem'  => 'Falha geral na transação',
+                'exception' => $e->getMessage(),
+            ];
+        }
+
+        // Retorna apenas a quantidade de registros alterados e erros
+        return [
+            'alterados' => $alterados,
+            'erros'     => $erros,
+        ];
+    }
+
+
+    public function calcularProcessosAD_bkp(int $paginacao = 1, float $fs = 1): array
+    {
+        // Define limite e offset para paginação
+        $limite = 100;
+        $offset = ($paginacao - 1) * $limite;
+
+        // Busca registros da tabela com paginação e ordenação
+        $registros = DB::table('tmp_processos_ad_oodc')
+            ->orderBy('dt_autuacao', 'desc')
+            ->offset($offset)
+            ->limit($limite)
+            ->get();
+
+        $resultRetorno = [];
+
+        foreach ($registros as $registro) {
+            $resultadoArray = (array) $registro;
+
+            // Extrai ano
+            $ano = substr($resultadoArray['dt_emissao'] ?? $resultadoArray['dt_autuacao'] ?? '2014', 0, 4);
+
+            // Extrai SQL e codlog
+            $sql = explode(',', $resultadoArray['sqls'] ?? '')[0] ?: null;
+            $codlog = $resultadoArray['codlog'] ?? null;
+
+            // Calcula valor_m2
+            if ($ano && $sql && $codlog) {
+                $valorM2 = $this->consultarValorM2($ano, $sql, $codlog);
+                $resultadoArray['valor_m2'] = $valorM2;
+            } else {
+                $resultadoArray['valor_m2'] = null;
+            }
+
+            // Extrai campos para calcular outorga
+            $at = $resultadoArray['area_do_terreno'] ?? null;
+            $ac = $resultadoArray['area_edificada_computavel'] ?? null;
+            $v  = $resultadoArray['valor_m2'] ?? null;
+
+            // Calcula FP
+            $setor = substr(str_replace('.', '', $sql), 0, 3);
+            $quadra = substr(str_replace('.', '', $sql), 3, 3);
+            $fp = $this->consultarFatorPlanejamento($setor, $quadra);
+            $resultadoArray['fp'] = $fp;
+
+            // Calcula valor_outorga
+            if ($at && $ac && $v && $fp) {
+                $valorOutorga = $this->calcularOutorga((float)$at, (float)$ac, (float)$v, (float)$fs, (float)$fp);
+                $resultadoArray['valor_outorga'] = $valorOutorga;
+            } else {
+                $resultadoArray['valor_outorga'] = null;
+            }
+
+            // Adiciona ao array de retorno
+            $resultRetorno[] = $resultadoArray;
+        }
+
+        return $resultRetorno;
     }
 
 

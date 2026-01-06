@@ -5,15 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DAPL - Dados Abertos de Processos de Licenciamento</title>
-    <link rel="stylesheet" href="../resources/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../resources/css/custom.css">
+    <link rel="stylesheet" href="resources/css/bootstrap.min.css">
+    <link rel="stylesheet" href="resources/css/custom.css">
 </head>
 
 <body>
     <div id="app">
         <div class="row w-75 mx-auto">
             <div class="col-4">
-                <img src="../resources/img/logo_prefeitura.png" alt="PMSP">
+                <img src="resources/img/logo_prefeitura.png" alt="PMSP">
             </div>
             <div class="col">
                 <h1>DAPL - Dados Abertos de Processos de Licenciamento</h1>
@@ -60,8 +60,8 @@
         </div>
     </div>
 </body>
-<script src="../resources/js/bootstrap.bundle.min.js"></script>
-<script src="../resources/js/vue.global.js"></script>
+<script src="resources/js/bootstrap.bundle.min.js"></script>
+<script src="resources/js/vue.global.js"></script>
 <script>
     const {
         createApp,
@@ -119,7 +119,7 @@
                 modal.show();
             },
             urlImgTutorial(num) {
-                let prefixo = "../resources/img/tutorial/";
+                let prefixo = "resources/img/tutorial/";
                 if (num < 10) {
                     prefixo += "0";
                 }
