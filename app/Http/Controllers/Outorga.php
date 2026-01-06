@@ -65,6 +65,19 @@ class Outorga extends Controller
         return response()->json($resultado);
     }
 
+    public function calcularProcessosAD(Request $request)
+    {
+        $paginacao = $request->input('paginacao') ? $request->input('paginacao') : 1;
+        $fs = $request->input('fs') ? $request->input('fs') : 1;
+        
+        // echo "\r\nCALCULAR PROCESSO - paginacao: " . $paginacao . " fs: " . $fs;
+
+        $resultado = $this->outorgaService->calcularProcessosAD($paginacao, $fs);
+
+        return response()->json($resultado);
+
+    }
+
 
     public function consultarFatorPlanejamento(Request $request)
     {
