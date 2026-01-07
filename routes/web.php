@@ -37,6 +37,17 @@ Route::get('/validacao', function () {
     return view('validacao', compact('nome', 'rf'));
 });
 
+Route::get('/businessintelligence', function () {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    $nome = $_SESSION['nomeUsuario'] ?? 'Visitante';
+    $rf = $_SESSION['IDUsuario'];
+
+    return view('businessintelligence', compact('nome', 'rf'));
+});
+
 Route::get('/outorga', function () {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();

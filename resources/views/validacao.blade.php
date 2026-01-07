@@ -23,30 +23,15 @@
                 <h1>DAPL - Dados Abertos de Processos de Licenciamento</h1>
             </div>
         </div>
-        <div class="card mx-auto mt-4" id="container-principal">
-            <div class="card-header text-center">
-                <ul class="nav nav-pills">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page">Validação</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="tutorial">Tutorial</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="outorga">Outorga</a>
-                    </li>
-                </ul>
-            </div>
+        <div class="card w-75 mx-auto mt-4" id="container-principal">
+            @include('partials.header', ['active' => 'validacao'])
             <div class="card-body" v-show="isCarregando">
                 <h2 class="text-center">@{{msgStatus}}</h2>
                 <div class="d-flex justify-content-center align-items-center"
                     v-if="msgStatus = 'Carregando...'"
                     style="height: 10vh;">
                     <div class="spinner-border text-info" role="status">
-                        <span class="visually-hidden">Carregando...</span>
+                        <span class="visually-hidden"></span>
                     </div>
                 </div>
             </div>
@@ -197,7 +182,8 @@
         <div
             class="position-fixed bottom-0 end-0 m-3"
             :class="{ 'p-3 border rounded shadow bg-light': expandida }"
-            :style="estiloBotaoCalculadora">
+            :style="estiloBotaoCalculadora"
+            v-show="!isCarregando && possuiConteudo">
             <div class="bg-primary text-white text-center p-2" style="cursor: pointer;" @click="toggleCalc">
                 Calculadora
             </div>
