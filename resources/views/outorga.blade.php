@@ -31,22 +31,7 @@
         </div>
 
         <div class="card w-75 mx-auto mt-4">
-            <div class="card-header">
-                <ul class="nav nav-pills">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="validacao">Validação</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="tutorial">Tutorial</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page">Outorga</a>
-                    </li>
-                </ul>
-            </div>
+            @include('partials.header', ['active' => 'outorga'])
             <div class="card-body">
                 <div class="row">
                     <div class="col">

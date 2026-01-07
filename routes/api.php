@@ -17,7 +17,7 @@ Route::get('/consultarSubprefeitura', [Utils::class, 'consultarSubprefeitura']);
 Route::post('/consultarSubprefeituras', [Utils::class, 'consultarSubprefeitura']);
 
 // BI
-Route::get('/bi/sql', [BusinessIntelligence::class, 'consultarSqlIncra']);
+Route::get('/bi/buscarsql', [BusinessIntelligence::class, 'buscarSqlIncra']);
 
 Route::post('/outorga/calcularOutorga', [Outorga::class, 'calcularOutorga']);
 Route::get('/outorga/consultarValorM2', [Outorga::class, 'consultarValorM2']);

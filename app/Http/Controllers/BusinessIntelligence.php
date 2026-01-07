@@ -16,9 +16,9 @@ class BusinessIntelligence extends Controller
     }
 
     /**
-     * GET /api/incra?sql_incra=VALOR
+     * GET /api/bi/buscarsql?sql_incra=VALOR
      */
-    public function consultarSqlIncra(Request $request): JsonResponse
+    public function buscarSqlIncra(Request $request): JsonResponse
     {
         $sqlIncra = $request->query('sql_incra');
 

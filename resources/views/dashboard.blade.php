@@ -24,7 +24,7 @@
             </div>
         </div>
         <div class="card w-75 mx-auto mt-4">
-            <div class="card-header">
+            <!-- <div class="card-header">
                 <ul class="nav nav-pills">
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="#">Dashboard</a>
@@ -39,7 +39,8 @@
                         <a class="nav-link" href="outorga">Outorga</a>
                     </li>
                 </ul>
-            </div>
+            </div> -->
+            @include('partials.header', ['active' => 'dashboard'])
             <div class="card-body" v-show="isCarregando">
                 <h2 class="text-center">@{{msgStatus}}</h2>
                 <div class="d-flex justify-content-center align-items-center"
