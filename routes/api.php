@@ -19,8 +19,11 @@ Route::post('/consultarSubprefeituras', [Utils::class, 'consultarSubprefeitura']
 // BI
 Route::get('/bi/buscarsql', [BusinessIntelligence::class, 'buscarSqlIncra']);
 
+// OODC
 Route::post('/outorga/calcularOutorga', [Outorga::class, 'calcularOutorga']);
 Route::get('/outorga/consultarValorM2', [Outorga::class, 'consultarValorM2']);
-Route::get('/outorga/buscarProcessoAD', [Outorga::class, 'buscarProcessoAD']);
 Route::get('/outorga/consultarFatorPlanejamento', [Outorga::class, 'consultarFatorPlanejamento']);
+Route::get('/outorga/buscarProcessoAD', [Outorga::class, 'buscarProcessoAD']);
 Route::get('/outorga/calcularProcessosAD', [Outorga::class, 'calcularProcessosAD']);
+Route::get('/outorga/buscarProcessoSISACOE', [Outorga::class, 'buscarProcessoSISACOE']);
+Route::get('/outorga/calcularProcessosSISACOE', [Outorga::class, 'calcularProcessosSISACOE']);
