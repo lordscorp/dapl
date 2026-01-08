@@ -24,7 +24,7 @@ Route::get('/', function () {
     $rf = $_SESSION['IDUsuario'];
 
     return view('dashboard', compact('nome', 'rf'));
-});
+})->middleware('checarrf');
 
 Route::get('/validacao', function () {
     if (session_status() === PHP_SESSION_NONE) {
@@ -35,7 +35,7 @@ Route::get('/validacao', function () {
     $rf = $_SESSION['IDUsuario'];
 
     return view('validacao', compact('nome', 'rf'));
-});
+})->middleware('checarrf');
 
 Route::get('/businessintelligence', function () {
     if (session_status() === PHP_SESSION_NONE) {
@@ -46,7 +46,9 @@ Route::get('/businessintelligence', function () {
     $rf = $_SESSION['IDUsuario'];
 
     return view('businessintelligence', compact('nome', 'rf'));
-});
+})
+->middleware('checarrf')
+->name('businessintelligence');
 
 Route::get('/outorga', function () {
     if (session_status() === PHP_SESSION_NONE) {
@@ -57,7 +59,7 @@ Route::get('/outorga', function () {
     $rf = $_SESSION['IDUsuario'];
 
     return view('outorga', compact('nome', 'rf'));
-});
+})->middleware('checarrf');
 
 Route::get('/tutorial', function () {
     return view('tutorial');

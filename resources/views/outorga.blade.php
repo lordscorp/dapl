@@ -35,7 +35,7 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col">
-                        <label class="form-label">Número SEI</label>
+                        <label class="form-label">Número SEI (AD)</label>
                         <input type="text" class="form-control" v-model="numProcessoAD">
                     </div>
                     <div class="col-2">
@@ -47,10 +47,22 @@
                         <input type="text" class="form-control" v-model="paginacao">
                     </div>
                     <div class="col">
-                        <button class="btn btn-info btn-lg mt-3" @click="buscarProcessoAD">Buscar</button>
+                        <button class="btn btn-info btn-lg mt-3" @click="buscarProcessoAD">Buscar AD</button>
+                    </div>
+                    <div class="col" style="display: none;">
+                        <button class="btn btn-info btn-lg mt-3" @click="calcularProcessosAD">Calcular AD</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <label class="form-label">Número Processo (SISACOE)</label>
+                        <input type="text" class="form-control" v-model="numProcessoSISACOE">
                     </div>
                     <div class="col">
-                        <button class="btn btn-info btn-lg mt-3" @click="calcularProcessosAD">Calcular AD</button>
+                        <button class="btn btn-info btn-lg mt-3" @click="buscarProcessoSISACOE">Buscar SISACOE</button>
+                    </div>
+                    <div class="col" style="display: none;">
+                        <button class="btn btn-info btn-lg mt-3" @click="calcularProcessosSISACOE">Calcular SISACOE</button>
                     </div>
                 </div>
                 <div class="row my-4">
@@ -128,6 +140,7 @@
                 fs: 1, // Fator Social
                 paginacao: 1,
                 numProcessoAD: "",
+                numProcessoSISACOE: "",
                 processoObj: {
                     numSei: '',
                     ano: 0,
@@ -178,6 +191,23 @@
                     this.processoPesquisado = {};
                 }
             },
+            async buscarProcessoSISACOE() {
+                try {
+                    const response = await fetch(`/api/outorga/buscarProcessoSISACOE?fs=${this.fs}&processo=${encodeURIComponent(this.numProcessoSISACOE)}`);
+
+                    if (!response.ok) {
+                        throw new Error(`Erro: ${response.status}`);
+                    }
+
+                    let processoRaw = await response.json();
+                    this.processoPesquisado = this.sanitizarDadosProcessoSISACOE(processoRaw);
+                    this.erro = null;
+                } catch (error) {
+                    this.erro = error.message;
+                    console.error(error);
+                    this.processoPesquisado = {};
+                }
+            },
             async calcularProcessosAD() {
                 try {
                     const response = await fetch(`/api/outorga/calcularProcessosAD?fs=${this.fs}&paginacao=${this.paginacao}`);
@@ -188,6 +218,23 @@
 
                     let processoRaw = await response.json();
                     this.processoPesquisado = this.sanitizarDadosProcessoAD(processoRaw);
+                    this.erro = null;
+                } catch (error) {
+                    this.erro = error.message;
+                    console.error(error);
+                    this.processoPesquisado = {};
+                }
+            },
+            async calcularProcessosSISACOE() {
+                try {
+                    const response = await fetch(`/api/outorga/calcularProcessosSISACOE?fs=${this.fs}`);
+
+                    if (!response.ok) {
+                        throw new Error(`Erro: ${response.status}`);
+                    }
+
+                    let processoRaw = await response.json();
+                    this.processoPesquisado = this.sanitizarDadosProcessoSISACOE(processoRaw);
                     this.erro = null;
                 } catch (error) {
                     this.erro = error.message;
@@ -215,6 +262,31 @@
                 processo.areaTerreno = parseFloat(processoRaw.area_do_terreno);
                 processo.areaComputavel = parseFloat(processoRaw.area_edificada_computavel);
                 processo.sql = processoRaw.sqls.split(',')[0];
+                processo.codlog = processoRaw.codlog;
+                processo.vm2 = processoRaw.valor_m2;
+                processo.fp = processoRaw.fp; // fator de planejamento
+                processo.valorOutorga = processoRaw.valor_outorga;
+                return processo;
+            },
+            sanitizarDadosProcessoSISACOE(processoRaw) {
+                console.log("sanitizarDadosProcessoSISACOE")
+                let processo = JSON.parse(JSON.stringify(this.processoObj));
+                /**
+                 * numSei: '',
+                    ano: 0,
+                    valorOutorga: 0,
+                    areaTerreno: 0,
+                    areaComputavel: 0,
+                    vm2: 0,
+                    fp: 0,
+                    sql: '',
+                    codlog: ''
+                 */
+                processo.numSei = processoRaw.processo;
+                processo.ano = processoRaw.dataUltimoRegistro ? processoRaw.dataUltimoRegistro.substring(0, 4) : processoRaw.dataPrimeiroRegistro.substring(0, 4);
+                processo.areaTerreno = parseFloat(processoRaw.areaTerreno);
+                processo.areaComputavel = parseFloat(processoRaw.areaComputavel);
+                processo.sql = processoRaw.sqlIncra.split(';')[0];
                 processo.codlog = processoRaw.codlog;
                 processo.vm2 = processoRaw.valor_m2;
                 processo.fp = processoRaw.fp; // fator de planejamento

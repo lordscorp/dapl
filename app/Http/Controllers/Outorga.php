@@ -65,6 +65,31 @@ class Outorga extends Controller
         return response()->json($resultado);
     }
 
+    /**
+     * Endpoint para buscar processo SISACOE.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function buscarProcessoSISACOE(Request $request)
+    {
+        // $processo = $request->input('processo');
+        $processo = urldecode($request->query('processo'));
+        $fs = $request->input('fs');
+
+        if (!$processo) {
+            return response()->json(['error' => 'Parâmetro "processo" é obrigatório.'], 400);
+        }
+
+        $resultado = $this->outorgaService->buscarProcessoSISACOE($processo, $fs);
+
+        if (!$resultado) {
+            return response()->json(['message' => 'Processo não encontrado.'], 404);
+        }
+
+        return response()->json($resultado);
+    }
+
     public function calcularProcessosAD(Request $request)
     {
         $paginacao = $request->input('paginacao') ? $request->input('paginacao') : 1;
@@ -73,6 +98,17 @@ class Outorga extends Controller
         // echo "\r\nCALCULAR PROCESSO - paginacao: " . $paginacao . " fs: " . $fs;
 
         $resultado = $this->outorgaService->calcularProcessosAD($paginacao, $fs);
+
+        return response()->json($resultado);
+
+    }
+
+    public function calcularProcessosSISACOE(Request $request)
+    {
+        $paginacao = $request->input('paginacao') ? $request->input('paginacao') : 1;
+        $fs = $request->input('fs') ? $request->input('fs') : 1;
+        
+        $resultado = $this->outorgaService->calcularProcessosSISACOE($paginacao, $fs);
 
         return response()->json($resultado);
 

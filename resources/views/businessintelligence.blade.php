@@ -50,14 +50,18 @@
                                 <th>SQL</th>
                                 <th>Sistema</th>
                                 <th>Assunto</th>
+                                <th>Situação</th>
                                 <th>Data Protocolo</th>
+                                <th>Subprefeitura</th>
                             </tr>
                             <tr v-for="processo in processosLocalizados">
                                 <td>@{{processo.processo}}</td>
                                 <td>@{{processo.sql}}</td>
                                 <td>@{{processo.sistema}}</td>
                                 <td>@{{processo.assunto}}</td>
+                                <td>@{{processo.SituacaoAssunto}}</td>
                                 <td>@{{ formatarData(processo.dtPedidoProtocolo) }}</td>
+                                <td>@{{processo.origem_subprefeitura}}</td>
                             </tr>
                         </table>
                     </div>

@@ -14,7 +14,6 @@ class BusinessIntelligenceService
 
     public function buscarPorSqlIncra(string $sqlIncra): array
     {
-        // Tabelas totalmente qualificadas (schema.nome)
         $tSqlIncra = $this->schema . '.' . $this->viewSqlIncra;         // dbo.prata_sql_incra
         $tAssunto  = $this->schema . '.prata_assunto';          // dbo.prata_assunto
 

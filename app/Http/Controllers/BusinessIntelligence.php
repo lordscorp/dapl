@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Services\BusinessIntelligenceService;
+use App\Services\LogService;
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class BusinessIntelligence extends Controller
 {
     protected $biService;
+    protected $logService;
 
-    public function __construct(BusinessIntelligenceService $biService)
+    public function __construct(BusinessIntelligenceService $biService, LogService $logService)
     {
         $this->biService = $biService;
+        $this->logService = $logService;
     }
 
     /**
@@ -27,6 +30,8 @@ class BusinessIntelligence extends Controller
         }
 
         try {
+            $this->logService->registrarDaSessao("Busca SQL", $sqlIncra);
+    
             $resultado = $this->biService->buscarPorSqlIncra($sqlIncra);
         } catch (\Throwable $e) {
             // Evita vazar detalhes de erro

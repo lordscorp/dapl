@@ -2,10 +2,19 @@
 
 namespace App\Services;
 
+use Exception;
 use Illuminate\Support\Facades\DB;
 
 class OutorgaService
 {
+
+    protected LogService $logService;
+
+    public function __construct(LogService $logService)
+    {
+        $this->logService = $logService;
+    }
+
     /**
      * OODC - Outorga Onerosa do Direito de Construir
      * - C = Contrapartida financeira por m² de potencial construtivo adicional.
@@ -59,6 +68,14 @@ class OutorgaService
 
     function consultarValorM2(int $ano, string $sql, string $codlog): ?float
     {
+        $detalhesLog = "Ano: {$ano}, SQL: {$sql}, codlog: {$codlog}";
+        try {
+            $codlog = str_replace('-', '', $codlog);
+        }
+        catch (Exception $e) {
+            $this->logService->registrar("Consultar valor m2", null, null, $e);
+        }
+        $this->logService->registrar("Consultar valor m2", null, null, $detalhesLog);
         // Reatribui usando a função já existente
         $sqlFormatado = $this->formatarSQL($sql);
 
@@ -217,7 +234,67 @@ class OutorgaService
         return $fator !== null ? floatval(str_replace(',', '.', $fator)) : null;
     }
 
+    /**
+     * Busca um processo na tabela empreendimentos pelo número do processo.
+     *
+     * @param string $processo
+     * @return array|null
+     */
+    public function buscarProcessoSISACOE(string $processo, float $fs = 1): ?array
+    {
+        // $resultado = DB::table('empreendimentos')
+        //     ->where('processo', $processo)
+        //     ->first();
 
+        $resultado = DB::table('empreendimentos')
+            ->join('levantamentohis', 'levantamentohis.grupoAssuntoReferenciado', '=', 'empreendimentos.grupoAssuntoReferenciado')
+            ->where('levantamentohis.processo', $processo)
+            ->select('empreendimentos.*')
+            ->first();
+
+
+        if ($resultado) {
+            // Converte para array para manipulação
+            $resultadoArray = (array) $resultado;
+
+            // Extrai os campos necessários para consultarValorM2
+            $ano = substr($resultadoArray['dataUltimoRegistro'] ?? $resultadoArray['dt_autuadataPrimeiroRegistro'] ?? '2014', 0, 4);
+
+            $sql = explode(';', $resultadoArray['sqlIncra'] ?? '')[0] ?: null;
+
+            $codlog = $resultadoArray['codlog'] ?? null;
+            // Chama consultarValorM2 se os campos existirem
+            if ($ano && $sql && $codlog) {
+                $valorM2 = $this->consultarValorM2($ano, $sql, $codlog);
+                $resultadoArray['valor_m2'] = $valorM2;
+            } else {
+                $resultadoArray['valor_m2'] = null;
+            }
+
+            // Extrai os campos necessários para calcularOutorga
+            $at = $resultadoArray['areaTerreno'] ?? null;
+            $ac = $resultadoArray['areaComputavel'] ?? null;
+            $v  = $resultadoArray['valor_m2'] ?? null; // usa o valor calculado acima
+
+            $setor = substr(str_replace('.', '', $sql), 0, 3);
+            $quadra = substr(str_replace('.', '', $sql), 3, 3);
+
+            $fp = $this->consultarFatorPlanejamento($setor, $quadra);
+            $resultadoArray['fp'] = $fp;
+
+            // Chama calcularOutorga se os campos existirem
+            if ($at && $ac && $v && $fp) {
+                $valorOutorga = $this->calcularOutorga((float)$at, (float)$ac, (float)$v, (float)$fs, (float)$fp);
+                $resultadoArray['valor_outorga'] = $valorOutorga;
+            } else {
+                $resultadoArray['valor_outorga'] = null;
+            }
+
+            return $resultadoArray;
+        }
+
+        return null;
+    }
 
 
     /**
@@ -278,18 +355,139 @@ class OutorgaService
         return null;
     }
 
+    public function calcularProcessosSISACOE(float $fs = 1)
+    {
+        $this->logService->registrar("Iniciado calculo de processos SISACOE", null, null, "Fator social: " . $fs);
+        $registros = DB::table('empreendimentos')
+            ->where(function ($q) {
+                $q->whereNotNull('num_his')
+                    ->orWhereNotNull('num_his1')
+                    ->orWhereNotNull('num_his2')
+                    ->orWhereNotNull('num_ehis');
+            })
+            ->orderBy('dataUltimoRegistro', 'desc')
+            ->get();
+
+        $alterados = 0;
+        $erros = [];
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($registros as $registro) {
+                try {
+                    // --- Preparação dos dados base ---
+                    $ano = substr(($registro->dataUltimoRegistro ?? $registro->dataPrimeiroRegistro ?? '2014'), 0, 4);
+
+                    // Primeiro SQL da lista (se houver)
+                    $sqlStr = null;
+                    if (!empty($registro->sqlIncra)) {
+                        $partesSql = explode(';', $registro->sqlIncra);
+                        $sqlStr = trim($partesSql[0]) ?: null;
+                    }
+
+                    $codlog = $registro->codlog ?? null;
+
+                    // Valor do m²
+                    $valorM2 = null;
+                    if ($ano && $sqlStr && $codlog) {
+                        $valorM2 = $this->consultarValorM2($ano, $sqlStr, $codlog);
+                    }
+
+                    // Campos para cálculo
+                    $at = $registro->areaTerreno ?? null;
+                    $ac = $registro->areaComputavel ?? null;
+
+                    // FP (setor/quadr) a partir do SQL
+                    $fp = null;
+                    if ($sqlStr) {
+                        $sqlNum = preg_replace('/\D/', '', $sqlStr); // remove pontos e não dígitos
+                        $setor = substr($sqlNum, 0, 3) ?: null;
+                        $quadra = substr($sqlNum, 3, 3) ?: null;
+
+                        if ($setor !== null && $quadra !== null) {
+                            $fp = $this->consultarFatorPlanejamento($setor, $quadra);
+                        }
+                    }
+
+                    // --- Cálculo da outorga ---
+                    $valorOutorga = null;
+                    if ($at !== null && $ac !== null && $valorM2 !== null && $fp !== null) {
+                        $valorOutorga = $this->calcularOutorga(
+                            (float) $at,
+                            (float) $ac,
+                            (float) $valorM2,
+                            (float) $fs,
+                            (float) $fp
+                        );
+
+                        // Atualiza diretamente a tabela com o valor calculado
+                        $updated = DB::table('empreendimentos')
+                            ->where('id', $registro->id)
+                            ->update([
+                                'outorgaCalculada' => $valorOutorga,
+                            ]);
+
+                        $alterados += $updated;
+                    } else {
+                        // Loga motivo de não cálculo
+                        $erros[] = [
+                            'id'       => $registro->id ?? null,
+                            'mensagem' => 'Campos insuficientes para cálculo de outorga',
+                            'detalhes' => [
+                                'ano'                  => $ano,
+                                'sql'                  => $sqlStr,
+                                'codlog'               => $codlog,
+                                'area_do_terreno'      => $at,
+                                'area_edificada_comp'  => $ac,
+                                'valor_m2'             => $valorM2,
+                                'fp'                   => $fp,
+                            ],
+                        ];
+                    }
+                } catch (\Throwable $e) {
+                    // Erro isolado por registro
+                    $erros[] = [
+                        'id'        => $registro->id ?? null,
+                        'mensagem'  => 'Erro ao processar registro',
+                        'exception' => $e->getMessage(),
+                    ];
+                }
+            }
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            $erros[] = [
+                'mensagem'  => 'Falha geral na transação',
+                'exception' => $e->getMessage(),
+            ];
+            $this->logService->registrar("Falha ao calcular oodc", null, null, $e->getMessage());
+        }
+
+        // Retorna apenas a quantidade de registros alterados e erros
+        return [
+            'alterados' => $alterados,
+            'erros'     => $erros,
+        ];
+    }
 
     public function calcularProcessosAD(int $paginacao = 1, float $fs = 1): array
     {
+        $this->logService->registrar("Iniciado calculo de processos AD", null, null, "Paginacao: " . $paginacao . ". Fator social: " . $fs);
         $limite = 100;
         $offset = ($paginacao - 1) * $limite;
 
         // Busca com paginação
+        // $registros = DB::table('tmp_processos_ad_oodc')
+        //     ->whereIn('usos_registrados', ['HIS', 'HIS 1', 'HIS 2', 'HIS1'])
+        //     ->orderBy('dt_autuacao', 'desc')
+        //     ->offset($offset)
+        //     ->limit($limite)
+        //     ->get();
         $registros = DB::table('tmp_processos_ad_oodc')
             ->whereIn('usos_registrados', ['HIS', 'HIS 1', 'HIS 2', 'HIS1'])
             ->orderBy('dt_autuacao', 'desc')
-            ->offset($offset)
-            ->limit($limite)
             ->get();
 
         $alterados = 0;
@@ -386,6 +584,7 @@ class OutorgaService
                 'mensagem'  => 'Falha geral na transação',
                 'exception' => $e->getMessage(),
             ];
+            $this->logService->registrar("Falha ao calcular oodc", null, null, $e->getMessage());
         }
 
         // Retorna apenas a quantidade de registros alterados e erros
@@ -394,7 +593,6 @@ class OutorgaService
             'erros'     => $erros,
         ];
     }
-
 
     public function calcularProcessosAD_bkp(int $paginacao = 1, float $fs = 1): array
     {
