@@ -37,7 +37,7 @@
                         <button class="btn btn-info btn-lg mt-3" @click="buscarSql">Buscar</button>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row" v-show="!isCarregando">
                     <div class="col">
                         <div
                         class="text-center m-4"
@@ -53,6 +53,7 @@
                                 <th>Situação</th>
                                 <th>Data Protocolo</th>
                                 <th>Subprefeitura</th>
+                                <th>Interessados</th>
                             </tr>
                             <tr v-for="processo in processosLocalizados">
                                 <td>@{{processo.processo}}</td>
@@ -62,6 +63,7 @@
                                 <td>@{{processo.SituacaoAssunto}}</td>
                                 <td>@{{ formatarData(processo.dtPedidoProtocolo) }}</td>
                                 <td>@{{processo.origem_subprefeitura}}</td>
+                                <td>@{{processo.interessados}}</td>
                             </tr>
                         </table>
                     </div>
@@ -115,7 +117,7 @@
                     this.$forceUpdate();
                 } catch (error) {
                     console.error('Erro na requisição:', error);
-                    window.alert("FALHA AO CARREGAR: " + error);
+                    // window.alert("FALHA AO CARREGAR: " + error);
                     this.isCarregando = false;
                 } finally {
                     this.jaBuscou = true;
