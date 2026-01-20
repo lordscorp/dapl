@@ -26,7 +26,10 @@ class ChecarRF
         $apenasBI = [
             'd837864',
             'd947587',
-            'd927090'
+            'd927090',
+            'd800650',
+            'd930678',
+            'd950688'
         ];
 
         // Se puder acessar apenas BI, direciona

@@ -486,7 +486,8 @@ class OutorgaService
         //     ->limit($limite)
         //     ->get();
         $registros = DB::table('tmp_processos_ad_oodc')
-            ->whereIn('usos_registrados', ['HIS', 'HIS 1', 'HIS 2', 'HIS1'])
+            // ->whereIn('usos_registrados', ['HIS', 'HIS 1', 'HIS 2', 'HIS1'])
+            ->whereNull('outorga_calculada') // Somente processos que nao acharam vm2 antes
             ->orderBy('dt_autuacao', 'desc')
             ->get();
 
@@ -508,7 +509,9 @@ class OutorgaService
                         $sqlStr = trim($partesSql[0]) ?: null;
                     }
 
-                    $codlog = $registro->codlog ?? null;
+                    // $codlog = $registro->codlog ?? null;
+                    // $codlog = $registro->P_COD_LOG ?? null;
+                    $codlog = $registro->P_COD_LOG ? str_pad($registro->P_COD_LOG, 6, '0', STR_PAD_LEFT) : null;
 
                     // Valor do m²
                     $valorM2 = null;
