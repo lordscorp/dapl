@@ -71,11 +71,10 @@ class OutorgaService
         $detalhesLog = "Ano: {$ano}, SQL: {$sql}, codlog: {$codlog}";
         try {
             $codlog = str_replace('-', '', $codlog);
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->logService->registrar("Consultar valor m2", null, null, $e);
         }
-        $this->logService->registrar("Consultar valor m2", null, null, $detalhesLog);
+        // $this->logService->registrar("Consultar valor m2", null, null, $detalhesLog);
         // Reatribui usando a função já existente
         $sqlFormatado = $this->formatarSQL($sql);
 
@@ -84,6 +83,7 @@ class OutorgaService
 
         // Valida se temos pelo menos 3 partes
         if (count($partes) < 3) {
+            $this->logService->registrar("Falha ao consultar valor m2 (sqlFormatado)", null, null, $sqlFormatado);
             return null; // ou lançar exceção
         }
 
@@ -115,9 +115,68 @@ class OutorgaService
             ->where('codlog', $codlog)
             ->value('vm2');
 
+        if ($resultado == null) {
+            $detalhesLog = "Setor: {$setor}, quadra: {$quadra}, codlog: {$codlog}, anoTabela: {$anoTabela}";
+            $this->logService->registrar("Falha ao consultar valor m2 (setor, quadra, codlog, anoTabela)", null, null, $detalhesLog);
+            $resultado = $this->inferirValorM2($setor, $quadra, $codlog, $tabela);
+        }
 
         return $resultado !== null ? (float)$resultado : null;
     }
+
+
+    /**
+     * Inferir estatísticas de vm2 a partir da vizinhança (setor/quadra).
+     *
+     * @param string      $setor
+     * @param string      $quadra
+     * @param string      $codlog
+     * @param string      $tabela
+     * @return            float 
+     */
+    function inferirValorM2(string $setor, string $quadra, string $codlog, string $tabela): ?float
+    {
+        $query = DB::table($tabela)
+            ->where('setor', $setor)
+            ->where('quadra', $quadra);
+
+        $vizinhos = $query->get();
+
+        if ($vizinhos->isEmpty()) {
+            $vizinhos = DB::table($tabela)
+                ->where('setor', $setor)
+                ->get();
+        }
+
+        $vm2Valores = $vizinhos->pluck('vm2')->filter()->values();
+
+        $menorVm2 = $vm2Valores->isNotEmpty() ? $vm2Valores->min() : null;
+        $maiorVm2 = $vm2Valores->isNotEmpty() ? $vm2Valores->max() : null;
+        $mediaVm2 = $vm2Valores->isNotEmpty() ? round($vm2Valores->avg(), 2) : null;
+
+        $filtroUtilizado = $query->wheres ?? [];
+        $escopo = ($vizinhos->isNotEmpty() && !is_null($quadra) && $quadra !== '')
+            ? 'setor+quadra (prioritario, se vazio cai para setor)'
+            : 'setor (fallback ou quadra vazia)';
+
+        $detalhesLog = sprintf(
+            'Setor: %s, Quadra: %s, Codlog: %s, Tabela: %s, Escopo: %s, Vizinhos: %d, menorVm2: %s, maiorVm2: %s, mediaVm2: %s',
+            $setor,
+            $quadra ?? '',
+            $codlog ?? '',
+            $tabela,
+            $escopo,
+            $vizinhos->count(),
+            is_null($menorVm2) ? 'null' : (string)$menorVm2,
+            is_null($maiorVm2) ? 'null' : (string)$maiorVm2,
+            is_null($mediaVm2) ? 'null' : (string)$mediaVm2
+        );
+
+        $this->logService->registrar("Inferir valor m2", null, null, $detalhesLog);
+
+        return $mediaVm2;
+    }
+
 
     function consultarValorM2_old(int $ano, string $sql, string $codlog): ?float
     {
@@ -209,9 +268,9 @@ class OutorgaService
             ->where('cd_setor_fiscal', $setor)
             ->where('cd_quadra_fiscal', $quadra)
             ->first();
-        // echo "consultarFatorPlanejamento";
-        // var_dump($macroarea);
+
         if (!$macroarea) {
+            $this->logService->registrar("Consultar FP", null, null, "Sem FP para setor {$setor} quadra {$quadra}");
             return null;
         }
 
@@ -221,17 +280,49 @@ class OutorgaService
 
         $query = DB::table('oodc_quadro6_fp');
 
+        // if ($perimetro !== '') {
+        //     $query->where('perimetro', $perimetro);
+        // } elseif ($macro !== '') {
+        //     $query->where('macroarea', $macro);
+        // } else {
+        //     $this->logService->registrar("Falha ao obter FP: (SetorQuadra)", null, null, $setor . $quadra);
+        //     return null; // Nenhuma chave válida
+        // }
+
+        // $fator = $query->value('fp_R');
+
+        $fator = null;
+
         if ($perimetro !== '') {
-            $query->where('perimetro', $perimetro);
+            $fator = DB::table('oodc_quadro6_fp')
+                ->where('perimetro', $perimetro)
+                ->value('fp_R');
+
+            if ($fator === null && $macro !== '') {
+                // 2) Fallback por macroárea
+                $fator = DB::table('oodc_quadro6_fp')
+                    ->where('macroarea', $macro)
+                    ->value('fp_R');
+            }
         } elseif ($macro !== '') {
-            $query->where('macroarea', $macro);
+            // Sem perímetro, vai direto por macroárea
+            $fator = DB::table('oodc_quadro6_fp')
+                ->where('macroarea', $macro)
+                ->value('fp_R');
         } else {
-            return null; // Nenhuma chave válida
+            // Nenhuma chave válida
+            $this->logService->registrar("Falha ao obter FP: (chaves vazias)", null, null, $setor . $quadra);
+            return null;
         }
 
-        $fator = $query->value('fp_R');
+        // Sem resultados em nenhuma das chaves
+        if ($fator === null) {
+            $this->logService->registrar("FP não encontrado (perímetro/macro)", null, null, $setor . $quadra);
+            return null;
+        }
 
-        return $fator !== null ? floatval(str_replace(',', '.', $fator)) : null;
+        // return $fator !== null ? floatval(str_replace(',', '.', $fator)) : null;
+        return floatval(str_replace(',', '.', (string)$fator));
     }
 
     /**
