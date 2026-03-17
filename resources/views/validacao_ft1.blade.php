@@ -41,137 +41,188 @@
             <div class="card-body px-4" v-show="!isCarregando && possuiConteudo">
                 <div id="fixada" style="position: sticky; top: 0; background-color: white; z-index: 10; padding: 10px; border-bottom: 1px solid #ccc;">
                     <div class="card-title">
-                        <h3>@{{ objProcesso.Assunto }}</h3>
-                        <h3>Processo: @{{ objProcesso.NumeroAD }} - SEI: @{{ objProcesso.NumeroSEI }}</h3>
+                        <h3>Processo: @{{ objProcesso.processo }} - @{{ objProcesso.assunto }}</h3>
                     </div>
-                    <!-- <h4>Categoria identificada: @{{objProcesso.categoria}}</h4> -->
-                    <h4>Tipologia: @{{objProcesso.Tipologia}}</h4>
-                    <div id="sqlincra" :title="objProcesso.SQL" style="overflow: auto; max-height: 3em; max-width: 30em;" class="mr-1">SQL: @{{ objProcesso.SQL}}</div>
-                    <hr>
-                    <!-- Link do processo -->
-                    <div class="row">
-                        <div class="col text-center"><a :href="processoLinkAD" target="_blank"><button class="btn btn-info">ABRIR DOCUMENTOS DO PROCESSO</button></a>&nbsp;</div>
-                        <div v-if="processoVinculadoLinkAD != PREFIXO_LINK_AD" class="col text-center"><a :href="processoVinculadoLinkAD" target="_blank"><button class="btn btn-warning">ABRIR DOCUMENTOS DO PROCESSO VINCULADO</button></a></div>
-                    </div>
+                    <h4>Categoria identificada: @{{objProcesso.categoria}}</h4>
+                    <div id="sqlincra" :title="objProcesso.sqlIncra" style="overflow: auto; max-height: 3em; max-width: 30em;" class="mr-1">SQL: @{{ objProcesso.sqlIncra}}</div>
                     <hr>
                     <div class="row g-1">
-                        <!-- <div class="col-2" v-if="false">
+                        <div class="col-2" v-if="false">
                             <label class="form-label">Data de Emissão</label>
                             <input type="date" class="form-control" v-model="objProcesso.dtEmissao" disabled>
-                        </div> -->
-                        <div class="col-2">
+                        </div>
+                        <div class="col-1">
                             <label class="form-label">Blocos</label>
-                            <input type="number" class="form-control" v-model="objProcesso.NumBlocos">
+                            <input type="number" class="form-control" v-model="objProcesso.blocos">
                         </div>
-                        <div class="col-2">
+                        <div class="col-1">
                             <label class="form-label">Pavimentos</label>
-                            <input type="number" class="form-control" v-model="objProcesso.NumPavimentos">
+                            <input type="number" class="form-control" v-model="objProcesso.pavimentos">
                         </div>
-                        <div class="col-2">
-                            <label class="form-label">HIS1</label>
-                            <input type="number" class="form-control" v-model="objProcesso.NumUnidadesHIS1">
+                        <!-- UNIDADES POR CATEGORIA DE USO -->
+                        <div class="col px-2">
+                            <label class="form-label">Unidades por categoria de uso</label>
+                            <div class="row g-2" v-for="(item, index) in objProcesso.uniCatUso" :key="index">
+                                <div class="col">
+                                    <select class="form-select" v-model="item.nome">
+                                        <option disabled value="">Selecione</option>
+                                        <option v-for="opcao in opcoesUniCatUso" :key="opcao" :value="opcao">@{{ opcao }}</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <input type="number" class="form-control uniCatInput" v-model="item.valor">
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary my-1" @click="adicionarUniCatUso" v-if="podeAdicionarUniCatUso">
+                                <strong>+</strong>
+                            </button>
                         </div>
-                        <div class="col-2">
-                            <label class="form-label">HIS2</label>
-                            <input type="number" class="form-control" v-model="objProcesso.NumUnidadesHIS2">
-                        </div>
-                        <div class="col-2">
-                            <label class="form-label">HMP</label>
-                            <input type="number" class="form-control" v-model="objProcesso.NumUnidadesHMP">
-                        </div>
-                        <div class="col-2">
-                            <label class="form-label">R2h/R2v</label>
-                            <input type="number" class="form-control" v-model="objProcesso.NumUnidadesR2hR2v">
-                        </div>
-                    </div>
-                    <div class="row">
+                        <!-- AMPARO LEGAL -->
                         <div class="col">
-                            Total de unidades: @{{objProcesso.NumUnidadesResidenciais}}
+                            <label for="amparoLegal" class="form-label">Amparo Legal</label>
+                            <input type="text" class="form-control" id="amparoLegal" v-model="objProcesso.amparoLegal" :title="objProcesso.amparoLegal">
+                        </div>
+                        <!-- OUTORGA -->
+                        <div class="col-2">
+                            <div class="form-check">
+                                <label class="form-check-label" for="constaOutorga">
+                                    Consta <span>Outorga</span>?
+                                </label>
+                                <input class="form-check-input" type="checkbox" id="constaOutorga" v-model="objProcesso.constaOutorga">
+                            </div>
                         </div>
                     </div>
+                    <div class="row g-1">
+                        <div class="container mt-4">
+                            <div class="row g-3">
+                                <div class="col" v-if="deveExibirAreas">
+                                    <label for="areaTotal" class="form-label">Área Total</label>
+                                    <input type="number" class="form-control" id="areaTotal" v-model="objProcesso.areaTotal" min="0" step="0.01">
+                                </div>
 
-                    <div class="row" v-for="(bloco, indiceBloco) in objProcesso.listaBlocos">
-                        <div class="col">
-                            <div class="card">
-                                <div class="card-header">Bloco @{{indiceBloco + 1}}</div>
-                                <!-- <div class="card-body">@{{bloco}}</div> -->
-                                <div class="card-body">
-                                    <!-- PAVIMENTO INICIO -->
-                                    <div class="row border" v-for="(pavimento, indicePavimento) in objProcesso.listaBlocos[indiceBloco].listaPavimentos" :key="indicePavimento">
-                                        <div class="col">
-                                            <label class="form-label">
-                                                <span v-if="indicePavimento==0">Térreo</span>
-                                                <span v-else>Pavimento @{{indicePavimento}}</span>
-                                            </label>
-                                            <div class="row g-2">
-                                                <div class="col" v-for="(unidade, indiceUnidade) in objProcesso.listaBlocos[indiceBloco].listaPavimentos[indicePavimento].listaUnidades" :key="indiceUnidade">
-                                                    <label class="form-label mb-0 mt-2">Unidade @{{indiceUnidade+1}}</label>
-                                                    <select class="form-select" v-model="unidade.categoria">
-                                                        <option disabled value="">Selecione</option>
-                                                        <option v-for="opcao in opcoesUniCatUso" :key="opcao" :value="opcao">@{{ opcao }}</option>
-                                                    </select>
-                                                </div>
-                                                <!-- <div class="col">
-                                                    <input type="number" class="form-control uniCatInput" v-model="item.valor">
-                                                </div> -->
-                                            </div>
-                                            <!-- ADICIONAR UNIDADE -->
-                                            <button class="btn btn-sm btn-outline-primary my-1" @click="adicionarUnidade(indiceBloco, indicePavimento, false)" v-if="podeAdicionarUnidade">
-                                                <strong>Adicionar Unidade</strong>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-primary my-1" @click="adicionarUnidade(indiceBloco, indicePavimento, true)" v-if="podeAdicionarUnidade">
-                                                <strong>Copiar Unidade</strong>
-                                            </button>
-                                            <!-- REMOVER UNIDADE -->
-                                            <button class="btn btn-sm btn-outline-danger my-1" @click="removerUnidade(indiceBloco, indicePavimento)">
-                                                <strong>Remover Unidade</strong>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <!-- PAVIMENTO FIM -->
-                                    <div class="row">
-                                        <div class="col text-right">
-                                            <!-- ADICIONAR Pavimento -->
-                                            <button class="btn btn-sm btn-primary m-1" @click="adicionarPavimento(indiceBloco, false)">
-                                                <strong>Adicionar Pavimento</strong>
-                                            </button>
-                                            <button class="btn btn-sm btn-primary m-1" @click="adicionarPavimento(indiceBloco, true)">
-                                                <strong>Copiar Pavimento</strong>
-                                            </button>
-                                            <!-- REMOVER Pavimento -->
-                                            <button class="btn btn-sm btn-danger m-1" @click="removerPavimento(indiceBloco)">
-                                                <strong>Remover Pavimento</strong>
-                                            </button>
-                                        </div>
-                                    </div>
+                                <div class="col" v-if="deveExibirAreas">
+                                    <label for="areaConstruida" class="form-label">Área Construída</label>
+                                    <input type="number" class="form-control" id="areaConstruida" v-model="objProcesso.areaConstruida" min="0" step="0.01">
+                                </div>
+
+                                <div class="col" v-if="deveExibirAreas">
+                                    <label for="areaComputavel" class="form-label">Área Computável</label>
+                                    <input type="number" class="form-control" id="areaComputavel" v-model="objProcesso.areaComputavel" min="0" step="0.01">
+                                </div>
+
+                                <div class="col-2" v-if="false">
+                                    <label class="form-label">Subprefeitura</label>
+                                    <select class="form-select" v-model="objProcesso.subprefeitura">
+                                        <option disabled value="">Selecione</option>
+                                        <option v-for="opcao in SUBPREFEITURAS" :key="opcao" :value="opcao">@{{ opcao }}</option>
+                                    </select>
+                                </div>
+
+                                <!-- USO DO IMÓVEL -->
+                                <div class="col">
+                                    <label for="usoDoImovel" class="form-label">Uso do Imóvel</label>
+                                    <input type="text" class="form-control" id="usoDoImovel" v-model="objProcesso.usoDoImovel" :title="objProcesso.usoDoImovel">
+                                </div>
+
+                                <div class="col-2">
+                                    <label for="zoneamento" class="form-label" title="Zoneamento vigente">Zoneamento</label>
+                                    <input type="text" class="form-control" id="zoneamento" v-model="objProcesso.zoneamento">
+                                </div>
+
+                                <div class="col-4">
+                                    <label for="proprietario" class="form-label">Proprietário</label>
+                                    <input type="text" class="form-control" id="proprietario" :title="objProcesso.proprietario" v-model="objProcesso.proprietario">
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col text-center">
-                            <!-- ADICIONAR Bloco -->
-                            <button class="btn btn-primary m-1" @click="adicionarBloco(false)">
-                                <strong>Adicionar Bloco</strong>
-                            </button>
-                            <button class="btn btn-primary m-1" @click="adicionarBloco(true)">
-                                <strong>Copiar Bloco</strong>
-                            </button>
-                            <!-- REMOVER Bloco -->
-                            <button class="btn btn-danger m-1" @click="removerBloco()">
-                                <strong>Remover Bloco</strong>
-                            </button>
+
+                    <div class="row my-1">
+                        <div class="col">
+                            <button class="btn btn-success btn-lg w-100" @click="validarProcesso">Validar</button>
                         </div>
                     </div>
+                </div>
 
-                    <div class="row my-4">
-                        <div class="col">
-                            <button class="btn btn-success btn-lg w-100" @click="validarProcessoUnidades">Validar</button>
+                <div class="mt-4 row">
+                    <div class="col ml-2" id="txt-conclusao">
+                        <div class="card">
+                            <div class="card-header">Certificado de Conclusão</div>
+                            <div class="card-body txt-doc">
+                                <p v-html="destacarTermos(objProcesso.docConclusao)" style="white-space: pre-line;"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col mr-2" id="txt-aprovacao">
+                        <div class="card">
+                            <div class="card-header">Doc Relacionado</div>
+                            <div class="card-body txt-doc">
+                                <p v-html="destacarTermos(objProcesso.docCodReferenciado)" style="white-space: pre-line;"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div v-if="objProcesso.docsRelacionados && objProcesso.docsRelacionados.length > 0">
+                    <h5>Docs Relacionados ao SQL</h5>
+                    <div class="mt-4 row" v-for="docRelacionado in objProcesso.docsRelacionados">
+                        <div class="col mr-2">
+                            <div class="card">
+                                <div class="card-header">@{{docRelacionado.assunto}} - @{{docRelacionado.dtEmissao}}</div>
+                                <div class="card-body txt-doc">
+                                    <p v-html="destacarTermos(docRelacionado.doc_txt)" style="white-space: pre-line;"></p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div
+            class="position-fixed bottom-0 end-0 m-3"
+            :class="{ 'p-3 border rounded shadow bg-light': expandida }"
+            :style="estiloBotaoCalculadora"
+            v-show="!isCarregando && possuiConteudo">
+            <div class="bg-primary text-white text-center p-2" style="cursor: pointer;" @click="toggleCalc">
+                Calculadora
+            </div>
+
+            <div v-if="expandida" class="mt-2">
+                <div class="row">
+                    <div class="col-8">
+                        <div v-for="(valor, index) in valoresCalc" :key="index" class="mb-2">
+                            <input
+                                type="number"
+                                :id="'input'+index"
+                                class="form-control calcInput"
+                                v-model.number="valoresCalc[index]"
+                                @keydown.enter.prevent="handleEnter(index)"
+                                @keydown="verificaTecla($event, index)" />
+                        </div>
+                    </div>
+                    <div class="col">
+                        <button @click="adicionarCampo" class="btn btn-success w-100 h-100 p-2 mb-2"><strong>+</strong></button>
+                    </div>
+                </div>
+                <div class="row my-3">
+                    <div class="col">
+                        <div
+                            type="text"
+                            class="form-control bg-gray"
+                            @click="inserirValorCalculado"
+                            style="cursor: pointer;"
+                            placeholder="Total">
+                            @{{somaTotal}} <span style="font-size: small;">(clique aqui para copiar)</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+
     </div>
 </body>
 <script src="resources/js/bootstrap.bundle.min.js"></script>
@@ -186,14 +237,12 @@
     createApp({
         data() {
             return {
-                // EXEMPLO LINK AD: https://www.portaldolicenciamentosp.com.br/consulta/process/view/saopaulosp/65833-26-SP-ALV/vwbhmny6
-                PREFIXO_LINK_AD: 'https://www.portaldolicenciamentosp.com.br/consulta/process/view/saopaulosp/',
                 SUBPREFEITURAS: ['Aricanduva', 'Butantã', 'Campo Limpo', 'Capela do Socorro', 'Casa Verde', 'Cidade Ademar', 'Cidade Tiradentes', 'Ermelino Matarazzo', 'Freguesia/Brasilândia', 'Guaianases', 'Ipiranga', 'Itaim Paulista', 'Itaquera', 'Jabaquara', 'Jaçanã/Tremembé', 'Lapa', 'MBoi Mirim', 'Mooca', 'Parelheiros', 'Penha', 'Perus/Anhaguera', 'Pinheiros', 'Pirituba/Jaraguá', 'Santana/Tucuruvi', 'Santo Amaro', 'São Mateus', 'São Miguel', 'Sapopemba', 'Sé', 'Vila Maria/Vila Guilherme', 'Vila Mariana', 'Vila Prudente'],
 
                 // opcoesUniCatUsoR: ['EHIS', 'EHMP', 'HIS', 'HMP', 'R1', 'R2'],
                 // opcoesUniCatUsoNR: ['nRa', 'nR1', 'nR2', 'nR3', 'Ind 1a', 'Ind 1b', 'Ind 2', 'Ind 3', 'INFRA'],
-                opcoesUniCatUsoR: ['HIS1', 'HIS2', 'HMP', 'R2v', 'R2'],
-                opcoesUniCatUsoNR: ['nR1', 'nR2', 'nR3'],
+                opcoesUniCatUsoR: ['HIS', 'HMP', 'R1', 'R2'],
+                opcoesUniCatUsoNR: ['nR1', 'nR2'],
                 opcoesUniCatUso: [],
 
                 termosDestaque: {
@@ -244,44 +293,28 @@
                 possuiConteudo: false,
 
                 objProcesso: {
-                    // id: 1,
-                    // Assunto: "Alvará de Aprovação e Execução de Edificação Nova",
-                    // NumeroAD: "64581-26-SP-ALV",
-                    // LinkProcessoAD: "64581-26-SP-ALV\/0cjugeah",
-                    // NumeroSEI: "1020.2026\/0002100-0",
-                    // Tipologia: "R2v,HIS 1,HIS 2",
-                    // NumTotalUnidades: 685,
-                    // DataCriacao: "2026-01-26",
-                    // SQL: "11024700762",
-                    // Endereco: "Rua Dr. Saul de Camargo Neves,180,Vila Constan\u00e7a",
-                    // NumBlocos: 2,
-                    // NumPavimentos: 11,
-                    // NumUnidadesResidenciais: 685,
-                    // NumUnidadesHIS: 541,
-                    // NumUnidadesHIS1: 191,
-                    // NumUnidadesHIS2: 350,
-                    // NumUnidadesHMP: 0,
-                    // NumUnidadesR2hR2v: 144
+                    processo: "1234",
+                    assunto: "Assunto X",
+                    dtEmissao: "2025-10-10",
+                    blocos: null,
+                    pavimentos: null,
+                    docCodReferenciado: "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Dignissimos, enim qui nostrum architecto dolor fugiat rerum ducimus debitis itaque et veniam sed omnis repudiandae maiores nobis, excepturi quam illo nemo!",
+                    docConclusao: "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Dignissimos, enim qui nostrum architecto dolor fugiat rerum ducimus debitis itaque et veniam sed omnis repudiandae maiores nobis, excepturi quam illo nemo!",
+                    uniCatUso: [{
+                        nome: 'HIS',
+                        valor: null
+                    }],
+                    amparoLegal: 'XPTO',
+                    usoDoImovel: 'XPTO',
+                    constaOutorga: false,
+                    areaTotal: 0,
+                    areaConstruida: 0,
+                    areaComputavel: 0,
+                    subprefeitura: '',
+                    zoneamento: '',
+                    proprietario: '',
                 },
-                objProcessoVinculado: {},
-                objBloco: {
-                    numPavimentosBloco: 20,
-                    maxUnidadesPorPavimento: 4,
-                    listaPavimentos: [{
-                            numHis1Pav: 4
-                        },
-                        {
-                            numHis1Pav: 4
-                        },
-                        {
-                            numHis1Pav: 4
-                        },
-                        // ...
-                        {
-                            numR2hR2vPav: 2
-                        }
-                    ]
-                }
+
             }
         },
         computed: {
@@ -289,24 +322,12 @@
                 let largura = this.expandida ? 250 : 100;
                 return `width: ${largura}px;`;
             },
-            podeAdicionarUnidade() {
-                // Simplificado para sempre permitir. (alterar aqui caso necessário)
-                return true;
-            },
-            // podeAdicionarUniCatUso() {
-            //     const ultimo = this.objProcesso.uniCatUso[this.objProcesso.uniCatUso.length - 1];
-            //     if (!ultimo) {
-            //         return true;
-            //     }
-            //     return ultimo.nome && ultimo.valor !== null;
-            // },
-            processoLinkAD() {
-                let linkAD = this.PREFIXO_LINK_AD + this.objProcesso.LinkProcessoAD;
-                return linkAD;
-            },
-            processoVinculadoLinkAD() {
-                let linkAD = this.PREFIXO_LINK_AD + this.objProcessoVinculado.LinkProcessoAD;
-                return linkAD;
+            podeAdicionarUniCatUso() {
+                const ultimo = this.objProcesso.uniCatUso[this.objProcesso.uniCatUso.length - 1];
+                if (!ultimo) {
+                    return true;
+                }
+                return ultimo.nome && ultimo.valor !== null;
             },
 
             somaTotal() {
@@ -325,69 +346,6 @@
                     valor: null
                 });
             },
-            adicionarBloco(deveCopiar = false) {
-                let objBloco = {
-                    listaPavimentos: []
-                }
-
-                let listaRef = this.objProcesso.listaBlocos;
-
-                if (deveCopiar) {
-                    objBloco = JSON.parse(JSON.stringify(listaRef[listaRef.length-1]))
-                }
-
-                listaRef.push(objBloco);
-            },
-            removerBloco() {
-                this.objProcesso.listaBlocos.pop();
-            },
-            adicionarPavimento(indiceBloco, deveCopiar = false) {
-                let objPavimento = {
-                    listaUnidades: [{
-                        categoria: ""
-                    }]
-                }
-                let listaRef = this.objProcesso.listaBlocos[indiceBloco].listaPavimentos;
-                console.log("adicionarPavimento - listaRef", listaRef)
-
-                if (deveCopiar) {
-                    try {
-                        objPavimento.listaUnidades = [];
-
-                        for (let unidadeDoPavimento of listaRef[listaRef.length - 1].listaUnidades) {
-                            objPavimento.listaUnidades.push(JSON.parse(JSON.stringify(unidadeDoPavimento)));
-                        }
-                    } catch (e) {
-                        console.error("ERRO AO COPIAR PAVIMENTO: ", e);
-                    }
-                }
-
-                listaRef.push(objPavimento);
-            },
-            removerPavimento(indiceBloco) {
-                this.objProcesso.listaBlocos[indiceBloco].listaPavimentos.pop();
-            },
-            adicionarUnidade(indiceBloco, indicePavimento, deveCopiar = false) {
-                console.log("AdicionarUnidade", indiceBloco, indicePavimento, deveCopiar);
-                // objProcesso.listaBlocos[indiceBloco].listaPavimentos[indicePavimento].listaUnidades
-                let objUnidade = {
-                    categoria: null
-                };
-                let listaRef = this.objProcesso.listaBlocos[indiceBloco].listaPavimentos[indicePavimento].listaUnidades;
-                console.log(this.objProcesso.listaBlocos);
-
-                if (deveCopiar) {
-                    try {
-                        objUnidade.categoria = listaRef[listaRef.length - 1].categoria;
-                    } catch (e) {
-                        console.error("ERRO AO COPIAR UNIDADE: ", e);
-                    }
-                }
-                listaRef.push(objUnidade);
-            },
-            removerUnidade(indiceBloco, indicePavimento) {
-                this.objProcesso.listaBlocos[indiceBloco].listaPavimentos[indicePavimento].listaUnidades.pop();
-            },
 
             carregarOptions() {
                 this.opcoesUniCatUso = this.opcoesUniCatUsoR.concat(this.opcoesUniCatUsoNR);
@@ -403,11 +361,10 @@
 
                 try {
                     this.isCarregando = true;
-                    const response = await fetch(`api/processoUnidadesAValidar?rfValidador=${encodeURIComponent(rfValidador)}`);
+                    const response = await fetch(`api/processoAValidar?rfValidador=${encodeURIComponent(rfValidador)}`);
                     if (!response.ok) throw new Error(response);
 
                     const data = await response.json();
-
                     if (!data.objProcesso) {
                         this.possuiConteudo = false;
                         this.isCarregando = false;
@@ -415,11 +372,21 @@
                     }
 
                     this.objProcesso = data.objProcesso;
-                    this.objProcessoVinculado = data.objProcessoVinculado;
-                    console.log("PROCESSO:");
-                    console.log(this.objProcesso);
-                    this.estimarDistribuicaoDeUnidades();
                     this.possuiConteudo = true;
+
+                    if (!this.objProcesso.uniCatUso) {
+                        this.objProcesso.uniCatUso.push({
+                            nome: 'HIS',
+                            valor: null
+                        })
+                    }
+                    this.procurarCatUso();
+                    this.procurarOutorga();
+                    this.objProcesso.blocos = this.procurarBlocos();
+                    this.objProcesso.pavimentos = this.procurarPavimentos();
+                    this.atribuirAreas();
+                    // this.sanitizarAmparoLegal();
+                    // this.procurarProprietario();
 
                     this.isCarregando = false;
                     this.$forceUpdate();
@@ -697,62 +664,65 @@
                 }
                 return null;
             },
+            procurarProprietario() {
+                let nomeProprietario = null;
 
-            // Validacao de Unidades
-            estimarDistribuicaoDeUnidades() {
-                console.log("estimarDistribuicaoDeUnidades()");
-                if (!this.objProcesso.NumBlocos) {
-                    window.alert("Não foi possível estimar a distribuição de unidades:\r\n\nNúmero de blocos indefinido");
-                    return;
+                try {
+                    const match = this.objProcesso.docConclusao.match(/PROPRIET[ÁA]RIO\s*:\s*(.+)/i);
+                    if (match) {
+                        nomeProprietario = match[1].split('\n')[0].trim();
+                    }
+                } catch (err) {
+                    console.warn("Erro ao procurar proprietario no doc conclusao", err);
                 }
 
-                let somaDeHis = this.objProcesso.NumUnidadesHIS1 + this.objProcesso.NumUnidadesHIS2;
-                if (somaDeHis !== this.objProcesso.NumUnidadesHIS) {
-                    this.avisos.push(`Soma HIS (${somaDeHis}) não bate com o valor informado no processo (${this.objProcesso.NumUnidadesHIS})`);
-                    if (somaDeHis > 0) {
-                        this.objProcesso.NumUnidadesHIS = somaDeHis;
-                    }
+                if (!nomeProprietario) {
+                    this.objProcesso.docsRelacionados.forEach(doc => {
+                        if (nomeProprietario) return;
+
+                        const texto = doc.doc_txt || '';
+                        const matchR = texto.match(/PROPRIET[ÁA]RIO\s*:\s*(.+)/i);
+                        if (matchR) {
+                            nomeProprietario = matchR[1].split('\n')[0].trim();
+                        }
+                    });
                 }
 
-                let somaDeResidenciais = this.objProcesso.NumUnidadesHIS + this.objProcesso.NumUnidadesHMP + this.objProcesso.NumUnidadesR2hR2v;
-                if (somaDeResidenciais !== this.objProcesso.NumUnidadesResidenciais) {
-                    this.avisos.push(`Soma de unidades residenciais (${somaDeResidenciais}) não bate com o valor informado no processo (${this.objProcesso.NumUnidadesResidenciais})`);
-                    this.objProcesso.NumUnidadesResidenciais = somaDeResidenciais;
-                }
+                this.objProcesso.proprietario = nomeProprietario;
 
-                // Divide o numero de unidades pela quantidade de blocos e pavimentos
-                let numUnidadesPorBloco = Math.floor(this.objProcesso.NumUnidadesResidenciais / this.objProcesso.NumBlocos)
-
-                this.objProcesso.listaBlocos = [];
-
-                // for (let i = 1; i <= this.objProcesso.NumBlocos; i++) {
-                    let objBloco = {
-                        // indice: i,
-                        numPavimentosBloco: this.objProcesso.NumPavimentos,
-                        maxUnidadesPorPavimento: Math.round(numUnidadesPorBloco / this.objProcesso.NumPavimentos),
-                        listaPavimentos: []
-                    }
-
-                    // for (let j = 0; j < this.objProcesso.NumPavimentos; j++) {
-                    let objPavimento = {
-                        listaUnidades: [{
-                            categoria: ""
-                        }]
-                    }
-
-                    objBloco.listaPavimentos.push(objPavimento);
-                    // }
-
-                    this.objProcesso.listaBlocos.push(objBloco);
-                // }
+                this.$forceUpdate();
+            },
+            procurarAreas() {
+                // this.areaComputavel = 
             },
 
-            async validarProcessoUnidades() {
+            sanitizarAmparoLegal() {
+                try{ 
+                    this.objProcesso.amparoLegal = this.objProcesso.amparoLegal.replace("1) CERTIFICADO DE CONCLUSAO TOTAL DE EDIFICACAO CONCEDIDO  NOS  TERMOS\r DA ", "");
+                }
+                catch(err) {
+                    console.warn("Erro ao limpar amparo legal:", err);
+                }
+            },
+
+            traduzir(campo) {
+                switch (campo) {
+                    case "doc_txt":
+                        return "Texto do Documento"
+                        break;
+
+                    default:
+                        return campo;
+                        break;
+                }
+            },
+
+            async validarProcesso() {
                 try {
                     this.isCarregando = true;
                     this.msgStatus = 'Validando informações...';
 
-                    const response = await fetch('api/validarProcessoUnidades', {
+                    const response = await fetch('api/validarProcesso', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

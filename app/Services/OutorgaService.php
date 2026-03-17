@@ -269,6 +269,10 @@ class OutorgaService
             ->where('cd_quadra_fiscal', $quadra)
             ->first();
 
+        if ($setor == "135" && $quadra == "241") {
+            return 0.5; // MRVU
+        }
+
         if (!$macroarea) {
             $this->logService->registrar("Consultar FP", null, null, "Sem FP para setor {$setor} quadra {$quadra}");
             return null;
@@ -365,6 +369,9 @@ class OutorgaService
             // Extrai os campos necessários para calcularOutorga
             $at = $resultadoArray['areaTerreno'] ?? null;
             $ac = $resultadoArray['areaComputavel'] ?? null;
+            if ($ac == null) {
+                $ac = $resultadoArray['areaConstruida'] ?? null;
+            }
             $v  = $resultadoArray['valor_m2'] ?? null; // usa o valor calculado acima
 
             $setor = substr(str_replace('.', '', $sql), 0, 3);
@@ -487,7 +494,11 @@ class OutorgaService
 
                     // Campos para cálculo
                     $at = $registro->areaTerreno ?? null;
-                    $ac = $registro->areaComputavel ?? null;
+                    // $ac = $registro->areaComputavel ?? null;
+                    // if ($ac == null) {
+                    //     $ac = $resultadoArray['areaConstruida'] ?? null;
+                    // }
+                    $ac = $registro->areaComputavel ?? ($registro->areaConstruida ?? null);
 
                     // FP (setor/quadr) a partir do SQL
                     $fp = null;

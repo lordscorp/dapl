@@ -37,6 +37,9 @@
                         <button class="btn btn-info btn-lg mt-3" @click="buscarSql">Buscar</button>
                     </div>
                 </div>
+                <div class="row my-4" v-show="isCarregando">
+                    <div class="col text-center">Carregando...</div>
+                </div>
                 <div class="row" v-show="!isCarregando">
                     <div class="col">
                         <div
@@ -88,11 +91,12 @@
                 isCarregando: false,
                 jaBuscou: false,
                 processosLocalizados: [],
-                sqlBusca: ""
+                sqlBusca: "",
             }
         },
         methods: {
             async buscarSql() {
+                this.processosLocalizados = [];
                 try {
                     if (this.sqlBusca.length < 10) {
                         window.alert("Digite um SQL válido");

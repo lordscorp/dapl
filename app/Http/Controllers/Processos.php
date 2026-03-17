@@ -29,9 +29,9 @@ class Processos extends Controller
         // return response()->json($dados);
 
         $validando = DB::table('levantamentohis')
-        ->select(['rfValidador', 'autonum', 'processo', 'sql_INCRA'])
-        ->where('validando', 1)
-        ->get();
+            ->select(['rfValidador', 'autonum', 'processo', 'sql_INCRA'])
+            ->where('validando', 1)
+            ->get();
 
         $validadores = DB::table('levantamentohis')
             ->whereIn('autonum', $ids)
@@ -128,6 +128,155 @@ class Processos extends Controller
         return response()->json(['status' => 'ok', 'atualizado' => $dadosUpdate]);
     }
 
+    public function validarProcessoUnidades(Request $request)
+    {
+        $data = $request->input('objProcesso');
+
+        // Monta os dados para update
+        $dadosUpdate = [
+            'NumBlocos'             => (int) $data['NumBlocos'],
+            'NumPavimentos'         => (int) $data['NumPavimentos'],
+            'validado'           => 1,
+            'validando'          => 0,
+            'validadoEm'         => now(),
+            'listaBlocos'           => $data['listaBLocos']
+        ];
+
+        // Atualiza o registro
+        DB::table('tbl_planurb')
+            ->where('id', $data['id'])
+            ->update($dadosUpdate);
+
+        return response()->json(['status' => 'ok', 'atualizado' => $dadosUpdate]);
+    }
+
+    public function processoUnidadesAValidar(Request $request)
+    {
+        $rfValidador = $request->query('rfValidador');
+        $path = storage_path('app/idsHisHmp20202026_mistos.txt');
+        $ids = array_filter(array_map('trim', file($path)));
+        $camposSelect = [
+            'id',
+            'Assunto',
+            'NumeroAD',
+            'LinkProcessoAD',
+            'NumeroSEI',
+            'Tipologia',
+            'NumTotalUnidades',
+            'DataCriacao',
+            'SQL',
+            'Endereco',
+            'NumBlocos',
+            'NumPavimentos',
+            'NumUnidadesResidenciais',
+            'NumUnidadesHIS',
+            'NumUnidadesHIS1',
+            'NumUnidadesHIS2',
+            'NumUnidadesHMP',
+            'NumUnidadesR2hR2v'
+        ];
+
+        $registro = DB::table('tbl_planurb')
+            ->select($camposSelect)
+            ->whereIn('id', $ids)
+            ->where('validando', 1)
+            ->where('rfValidador', $rfValidador)
+            ->first();
+
+        if (!$registro) {
+            $registro = DB::table('tbl_planurb')
+                ->select($camposSelect)
+                ->whereIn('id', $ids)
+                ->where(function ($query) {
+                    $query->where(function ($q) {
+                        $q->whereNull('validando')
+                            ->orWhere('validando', 0);
+                    })->where(function ($q) {
+                        $q->whereNull('validado')
+                            ->orWhere('validado', 0);
+                    });
+                })
+                ->first();
+
+            if (!$registro) {
+                return response()->json([]);
+            }
+        }
+
+        $registroVinculado = null;
+        // try {
+        //     $registroVinculado = DB::table('tbl_planurb')
+        //     ->select($camposSelect)
+        //     ->whereIn('SQL', $registro->SQL)
+        //     ->first();
+        // }
+
+        try {
+            // $registroVinculado = DB::table('tbl_planurb')
+            //     ->select($camposSelect)
+            //     ->where('SQL', $registro->SQL)          // mesmo Setor/Quadra/Lote
+            //     ->where('id', '<>', $registro->id)     // ignora o próprio registro
+            //     ->where(function ($query) {
+            //         $query->where('Assunto', 'like', '%Modificativo%')
+            //             ->orWhere('Assunto', 'like', '%Aprova%');
+            //     })
+            //     ->first();
+
+            // 1) Tenta encontrar primeiro "Modificativo"
+            $registroVinculado = DB::table('tbl_planurb')
+                ->select($camposSelect)
+                ->where('SQL', $registro->SQL)          // mesmo Setor/Quadra/Lote
+                ->where('id', '<>', $registro->id)     // ignora o próprio registro
+                ->where('Assunto', 'like', '%Modificativo%')
+                ->first();
+
+            // 2) Se não encontrou, tenta "Aprovação"
+            if (!$registroVinculado) {
+                $registroVinculado = DB::table('tbl_planurb')
+                    ->select($camposSelect)
+                    ->where('SQL', $registro->SQL)
+                    ->where('id', '<>', $registro->id)
+                    ->where('Assunto', 'like', '%Aprova%')
+                    ->first();
+            }
+        } catch (\Throwable $e) {
+            // throw ($e);
+        }
+
+
+        // SALVA REGISTRO ENCONTRADO COMO 'VALIDANDO'
+        DB::table('tbl_planurb')
+            ->where('id', $registro->id)
+            ->update([
+                'validando' => 1,
+                'rfValidador' => $rfValidador,
+            ]);
+
+        /*
+             * 'Assunto',
+            'NumeroAD',
+            'NumeroSEI',
+            'Tipologia',
+            'NumTotalUnidades',
+            'DataCriacao',
+            'SQL',
+            'Endereco',
+            'NumBlocos',
+            'NumPavimentos',
+            'NumUnidadesResidenciais',
+            'NumUnidadesHIS',
+            'NumUnidadesHIS1',
+            'NumUnidadesHIS2',
+            'NumUnidadesHMP',
+            'NumUnidadesR2hR2v'
+             */
+
+        return response()->json([
+            'objProcesso' => $registro,
+            'objProcessoVinculado' => $registroVinculado
+        ]);
+    }
+
     public function processoAValidar(Request $request)
     {
         $rfValidador = $request->query('rfValidador');
@@ -183,7 +332,7 @@ class Processos extends Controller
                 ->first();
 */
             if (!$registro) {
-                return response()->json([]);
+                return response()->json(['message' => 'Nenhum processo encontrado'], 404);
             }
         }
 

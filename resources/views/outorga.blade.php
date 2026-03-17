@@ -10,6 +10,10 @@
 </head>
 
 <body>
+    <div id="logout">
+        <span id="nome-usuario" style="opacity: 0;">Nome: {{ $nome }}</span><span id="rf-usuario" class="mx-2">{{ $rf }}</span>
+        <a href="logout.php"><button class="btn btn-danger btn-sm float-right">Sair</button></a>
+    </div>
     <div id="app">
         <div class="row w-75 mx-auto">
             <div class="col-4">
@@ -19,6 +23,7 @@
                 <h1>DAPL - Dados Abertos de Processos de Licenciamento</h1>
             </div>
         </div>
+                <!-- <div id="bkpinfo">{{ $nome }}</div> -->
 
         <div class="modal fade" id="imagemModal" tabindex="-1" aria-hidden="true" ref="modal">
             <div class="modal-dialog modal-dialog-centered modal-xl">
@@ -49,7 +54,7 @@
                     <div class="col">
                         <button class="btn btn-info btn-lg mt-3" @click="buscarProcessoAD">Buscar AD</button>
                     </div>
-                    <div class="col" style="display: none;">
+                    <div class="col" v-show="isAdmin">
                         <button class="btn btn-info btn-lg mt-3" @click="calcularProcessosAD">Calcular AD</button>
                     </div>
                 </div>
@@ -61,7 +66,7 @@
                     <div class="col">
                         <button class="btn btn-info btn-lg mt-3" @click="buscarProcessoSISACOE">Buscar SISACOE</button>
                     </div>
-                    <div class="col" style="display: none;">
+                    <div class="col" v-show="isAdmin">
                         <button class="btn btn-info btn-lg mt-3" @click="calcularProcessosSISACOE">Calcular SISACOE</button>
                     </div>
                 </div>
@@ -166,6 +171,16 @@
                     }
                 ]
             }
+        },
+        computed: {
+            isAdmin: () => {
+                let rfUsuario = document.querySelector("#rf-usuario").textContent;
+                console.log(rfUsuario);
+                if (rfUsuario == 'd851026') {
+                    return true;
+                }
+                return false;
+            },
         },
         methods: {
             abrirModal(url) {
