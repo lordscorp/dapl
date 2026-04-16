@@ -24,6 +24,22 @@
             </div>
         </div>
         <div class="card w-75 mx-auto mt-4">
+            <!-- <div class="card-header">
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="validacao">Validação</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="tutorial">Tutorial</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="outorga">Outorga</a>
+                    </li>
+                </ul>
+            </div> -->
             @include('partials.header', ['active' => 'dashboard'])
             <div class="card-body" v-show="isCarregando">
                 <h2 class="text-center">@{{msgStatus}}</h2>
@@ -39,7 +55,7 @@
                 <div class="row">
                     <div class="col-3">
                         <div class="card">
-                            <div class="card-header">Processos HIS/HMP 2020 a 2026</div>
+                            <div class="card-header">Processos HIS/HMP 2014 a 2019</div>
                             <div class="card-body big-numbers btn-outline-dark text-center">@{{totalHisHmp}}</div>
                         </div>
                     </div>
@@ -57,8 +73,8 @@
                     </div>
                     <div class="col-3">
                         <div class="card">
-                            <div class="card-header">Validados</div>
-                            <a href="api/exportarExcelListaBlocos" title="Clique para exportar a planilha" style="text-decoration: none !important;">
+                            <div class="card-header">Validados (clique para exportar)</div>
+                            <a href="api/exportarValidados" title="Clique para exportar a planilha" style="text-decoration: none !important;">
                                 <div class="card-body big-numbers btn-outline-success text-center">@{{totalValidado}}</div>
                             </a>
                         </div>
@@ -92,8 +108,8 @@
                                 <table class="table">
                                     <tr v-for="validador in validando">
                                         <td>@{{validador.rfValidador}}</td>
-                                        <td>@{{validador.NumeroAD}}</td>
-                                        <td>@{{validador.SQL.substr(0, 12)}}</td>
+                                        <td>@{{validador.processo}}</td>
+                                        <td>@{{validador.sql_INCRA}}</td>
                                     </tr>
                                 </table>
                             </div>
@@ -130,9 +146,11 @@
         methods: {
             async carregarDadosDashboard(mock = false) {
                 try {
-                    let urlDadosDashboard = 'api/dadosDashboardFt2';
-                    
+                    let urlDadosDashboard = 'api/dadosDashboard';
+                    let urlDadosDashboardMock = 'api/mockDadosDashboard';
+
                     this.isCarregando = true;
+                    // const response = await fetch(`api/dadosDashboard`);
                     const response = await fetch(mock ? urlDadosDashboardMock : urlDadosDashboard);
                     if (!response.ok) throw new Error('Erro ao carregar dados');
 

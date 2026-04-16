@@ -15,6 +15,22 @@
         <a href="logout.php"><button class="btn btn-danger btn-sm float-right">Sair</button></a>
     </div>
     <div id="app">
+        <!-- ALERTAS E MENSAGENS TEMPORARIAS -->
+        <div
+            v-if="toast.visivel"
+            class="toast-container position-fixed top-0 end-0 p-3"
+            style="z-index: 999">
+            <div
+                :class="['toast align-items-center show fade', toast.tipoClasse]"
+                role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        @{{ toast.mensagem }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- FIM ALERTAS -->
         <div class="row w-75 mx-auto">
             <div class="col-4">
                 <img src="resources/img/logo_prefeitura.png" alt="PMSP">
@@ -44,7 +60,7 @@
                         <h3>@{{ objProcesso.Assunto }}</h3>
                         <h3>Processo: @{{ objProcesso.NumeroAD }} - SEI: @{{ objProcesso.NumeroSEI }}</h3>
                     </div>
-                    <!-- <h4>Categoria identificada: @{{objProcesso.categoria}}</h4> -->
+                    <!-- <h4>cat identificada: @{{objProcesso.cat}}</h4> -->
                     <h4>Tipologia: @{{objProcesso.Tipologia}}</h4>
                     <div id="sqlincra" :title="objProcesso.SQL" style="overflow: auto; max-height: 3em; max-width: 30em;" class="mr-1">SQL: @{{ objProcesso.SQL}}</div>
                     <hr>
@@ -88,25 +104,39 @@
                         <div class="col">
                             Total de unidades: @{{objProcesso.NumUnidadesResidenciais}}
                         </div>
+                        <div class="col text-right">
+                            <label class="form-label">Planta apresenta numeração das unidades?</label>
+                            <input type="checkbox" class="form-control" v-model="objProcesso.plantaExplicitaUnidades">
+                        </div>
                     </div>
 
-                    <div class="row" v-for="(bloco, indiceBloco) in objProcesso.listaBlocos">
+                    <div class="row my-4" v-for="(bloco, indiceBloco) in objProcesso.listaBlocos">
                         <div class="col">
                             <div class="card">
-                                <div class="card-header">Bloco @{{indiceBloco + 1}}</div>
+                                <div class="card-header">
+                                    <div class="row">
+                                        <div class="col">Bloco @{{indiceBloco + 1}}</div>
+                                        <div class="col col-8 text-right">
+                                            <div class="row">
+                                                <label class="form-label col col-form-label">Pavimentos com unidades residenciais abaixo do térreo</label>
+                                                <div class="col col-sm-2" style="min-width: 80px;"><input type="number" class="form-control" min="0" v-model="objProcesso.listaBlocos[indiceBloco].pavimentosNegativos"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <!-- <div class="card-body">@{{bloco}}</div> -->
                                 <div class="card-body">
                                     <!-- PAVIMENTO INICIO -->
                                     <div class="row border" v-for="(pavimento, indicePavimento) in objProcesso.listaBlocos[indiceBloco].listaPavimentos" :key="indicePavimento">
                                         <div class="col">
                                             <label class="form-label">
-                                                <span v-if="indicePavimento==0">Térreo</span>
-                                                <span v-else>Pavimento @{{indicePavimento}}</span>
+                                                <span v-if="indicePavimento - objProcesso.listaBlocos[indiceBloco].pavimentosNegativos == 0">Térreo</span>
+                                                <span v-else>Pavimento @{{indicePavimento - objProcesso.listaBlocos[indiceBloco].pavimentosNegativos}}</span>
                                             </label>
                                             <div class="row g-2">
-                                                <div class="col" v-for="(unidade, indiceUnidade) in objProcesso.listaBlocos[indiceBloco].listaPavimentos[indicePavimento].listaUnidades" :key="indiceUnidade">
+                                                <div :class="'col col-sm-2 '+unidade.cat" v-for="(unidade, indiceUnidade) in objProcesso.listaBlocos[indiceBloco].listaPavimentos[indicePavimento].listaUnidades" :key="indiceUnidade">
                                                     <label class="form-label mb-0 mt-2">Unidade @{{indiceUnidade+1}}</label>
-                                                    <select class="form-select" v-model="unidade.categoria">
+                                                    <select class="form-select" v-model="unidade.cat">
                                                         <option disabled value="">Selecione</option>
                                                         <option v-for="opcao in opcoesUniCatUso" :key="opcao" :value="opcao">@{{ opcao }}</option>
                                                     </select>
@@ -116,14 +146,17 @@
                                                 </div> -->
                                             </div>
                                             <!-- ADICIONAR UNIDADE -->
-                                            <button class="btn btn-sm btn-outline-primary my-1" @click="adicionarUnidade(indiceBloco, indicePavimento, false)" v-if="podeAdicionarUnidade">
+                                            <button class="btn btn-sm btn-outline-primary m-1" @click="adicionarUnidade(indiceBloco, indicePavimento, false)" v-if="podeAdicionarUnidade">
                                                 <strong>Adicionar Unidade</strong>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-primary my-1" @click="adicionarUnidade(indiceBloco, indicePavimento, true)" v-if="podeAdicionarUnidade">
+                                            <button class="btn btn-sm btn-outline-primary m-1" @click="adicionarUnidade(indiceBloco, indicePavimento, true)" v-if="podeAdicionarUnidade">
                                                 <strong>Copiar Unidade</strong>
                                             </button>
+                                            <button class="btn btn-sm btn-outline-primary m-1" @click="adicionarUnidade(indiceBloco, indicePavimento, true, true)" v-if="podeAdicionarUnidade">
+                                                <strong>Copiar x@{{multiplicador}} uni.</strong>
+                                            </button>
                                             <!-- REMOVER UNIDADE -->
-                                            <button class="btn btn-sm btn-outline-danger my-1" @click="removerUnidade(indiceBloco, indicePavimento)">
+                                            <button class="btn btn-sm btn-outline-danger m-1" @click="removerUnidade(indiceBloco, indicePavimento)">
                                                 <strong>Remover Unidade</strong>
                                             </button>
                                         </div>
@@ -132,14 +165,17 @@
                                     <div class="row">
                                         <div class="col text-right">
                                             <!-- ADICIONAR Pavimento -->
-                                            <button class="btn btn-sm btn-primary m-1" @click="adicionarPavimento(indiceBloco, false)">
+                                            <button class="btn btn btn-primary m-1" @click="adicionarPavimento(indiceBloco, false)">
                                                 <strong>Adicionar Pavimento</strong>
                                             </button>
-                                            <button class="btn btn-sm btn-primary m-1" @click="adicionarPavimento(indiceBloco, true)">
+                                            <button class="btn btn btn-primary m-1" @click="adicionarPavimento(indiceBloco, true)">
                                                 <strong>Copiar Pavimento</strong>
                                             </button>
+                                            <button class="btn btn btn-primary m-1" @click="adicionarPavimento(indiceBloco, true, true)">
+                                                <strong>Copiar x@{{multiplicador}} pav.</strong>
+                                            </button>
                                             <!-- REMOVER Pavimento -->
-                                            <button class="btn btn-sm btn-danger m-1" @click="removerPavimento(indiceBloco)">
+                                            <button class="btn btn btn-danger m-1" @click="removerPavimento(indiceBloco)">
                                                 <strong>Remover Pavimento</strong>
                                             </button>
                                         </div>
@@ -151,14 +187,14 @@
                     <div class="row">
                         <div class="col text-center">
                             <!-- ADICIONAR Bloco -->
-                            <button class="btn btn-primary m-1" @click="adicionarBloco(false)">
+                            <button class="btn btn-lg btn-outline-primary m-1" @click="adicionarBloco(false)">
                                 <strong>Adicionar Bloco</strong>
                             </button>
-                            <button class="btn btn-primary m-1" @click="adicionarBloco(true)">
+                            <button class="btn btn-lg btn-outline-primary m-1" @click="adicionarBloco(true)">
                                 <strong>Copiar Bloco</strong>
                             </button>
                             <!-- REMOVER Bloco -->
-                            <button class="btn btn-danger m-1" @click="removerBloco()">
+                            <button class="btn btn-lg btn-outline-danger m-1" @click="removerBloco()">
                                 <strong>Remover Bloco</strong>
                             </button>
                         </div>
@@ -166,10 +202,91 @@
 
                     <div class="row my-4">
                         <div class="col">
-                            <button class="btn btn-success btn-lg w-100" @click="validarProcessoUnidades">Validar</button>
+                            <button class="btn btn-success btn-lg w-100" :disabled="!podeValidar" @click="validarProcessoUnidades">Validar</button>
+                        </div>
+                    </div>
+                    <!-- <div class="row my-4">
+                        <div class="col text-right">
+                            Caso já tenha preenchido tudo e, por motivo de força maior, não consiga validar, clique no botão a seguir e cole o texto no Teams (ou em bloco de notas e salve):
+                            <button class="btn btn-danger" @click="botaoDoPanico">Botão do Pânico (copiar para área de transferência)</button>
+                        </div>
+                    </div> -->
+                    <div class="row my-4">
+                        <div class="col text-right">
+                            Caso a planta/peça gráfica não possua nenhuma legenda explicitando o tipo de uso, tornando impossível a validação de cada unidade, clique no botão a seguir:
+                            <button class="btn btn-warning" @click="adicionarProcessoAListaNegra">Adicionar processo à Lista X</button>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div id="caixa-atribuir" class="card" v-if="podeAtribuirProcessos">
+            <div class="card-header">
+                Atribuir processo
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <label class="form-label">RF (d123456)</label>
+                        <input type="text" class="form-control" v-model="rfAtribuido">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <label class="form-label">Número AD</label>
+                        <input type="text" class="form-control" v-model="numeroAD">
+                    </div>
+                </div>
+                <div class="row my-2">
+                    <div class="col">
+                        <button class="btn btn-info" @click="atribuirProcesso">Atribuir processo AD</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="caixa-multiplicador" class="card">
+            <div class="card-header">
+                Multiplicador
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <input type="number" class="form-control" min="1" v-model="multiplicador">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="contador" class="card">
+            <div class="card-header">
+                Unidades Restantes
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col HIS1">HIS1: </div>
+                    <div class="col HIS1 text-right">@{{objProcesso.NumUnidadesHIS1 - unidadesAtribuidasHIS1}}</div>
+                </div>
+                <div class="row">
+                    <div class="col HIS2">HIS2: </div>
+                    <div class="col HIS2 text-right">@{{objProcesso.NumUnidadesHIS2 - unidadesAtribuidasHIS2}}</div>
+                </div>
+                <div class="row">
+                    <div class="col HMP">HMP: </div>
+                    <div class="col HMP text-right">@{{objProcesso.NumUnidadesHMP - unidadesAtribuidasHMP}}</div>
+                </div>
+                <div class="row">
+                    <div class="col R2v">R2v: </div>
+                    <div class="col R2v text-right">@{{objProcesso.NumUnidadesR2hR2v - unidadesAtribuidasR2hR2v}}</div>
+                </div>
+                <!-- <div class="row">
+                    <div class="col HIS2">HIS2: 100</div>
+                </div>
+                <div class="row">
+                    <div class="col HMP">HMP: 100</div>
+                </div>
+                <div class="row">
+                    <div class="col R2v">R2v/R2h: 100</div>
+                </div> -->
             </div>
         </div>
     </div>
@@ -189,10 +306,18 @@
                 // EXEMPLO LINK AD: https://www.portaldolicenciamentosp.com.br/consulta/process/view/saopaulosp/65833-26-SP-ALV/vwbhmny6
                 PREFIXO_LINK_AD: 'https://www.portaldolicenciamentosp.com.br/consulta/process/view/saopaulosp/',
                 SUBPREFEITURAS: ['Aricanduva', 'Butantã', 'Campo Limpo', 'Capela do Socorro', 'Casa Verde', 'Cidade Ademar', 'Cidade Tiradentes', 'Ermelino Matarazzo', 'Freguesia/Brasilândia', 'Guaianases', 'Ipiranga', 'Itaim Paulista', 'Itaquera', 'Jabaquara', 'Jaçanã/Tremembé', 'Lapa', 'MBoi Mirim', 'Mooca', 'Parelheiros', 'Penha', 'Perus/Anhaguera', 'Pinheiros', 'Pirituba/Jaraguá', 'Santana/Tucuruvi', 'Santo Amaro', 'São Mateus', 'São Miguel', 'Sapopemba', 'Sé', 'Vila Maria/Vila Guilherme', 'Vila Mariana', 'Vila Prudente'],
+                avisos: [],
+
+                toast: {
+                    visivel: false,
+                    mensagem: '',
+                    tipoClasse: 'text-bg-success', // success | danger | warning | info
+                    timeout: null
+                },
 
                 // opcoesUniCatUsoR: ['EHIS', 'EHMP', 'HIS', 'HMP', 'R1', 'R2'],
                 // opcoesUniCatUsoNR: ['nRa', 'nR1', 'nR2', 'nR3', 'Ind 1a', 'Ind 1b', 'Ind 2', 'Ind 3', 'INFRA'],
-                opcoesUniCatUsoR: ['HIS1', 'HIS2', 'HMP', 'R2v', 'R2'],
+                opcoesUniCatUsoR: ['HIS1', 'HIS2', 'HMP', 'R2v', 'R2h'],
                 opcoesUniCatUsoNR: ['nR1', 'nR2', 'nR3'],
                 opcoesUniCatUso: [],
 
@@ -235,11 +360,13 @@
                     'PROPRIETÁRIO': 'destaque-5',
                 },
 
-                deveExibirAreas: false,
                 isCarregando: false,
                 msgStatus: 'Carregando...',
                 expandida: false,
                 valoresCalc: [],
+                autosaveTimeout: null,
+
+                multiplicador: 1,
 
                 possuiConteudo: false,
 
@@ -293,47 +420,245 @@
                 // Simplificado para sempre permitir. (alterar aqui caso necessário)
                 return true;
             },
-            // podeAdicionarUniCatUso() {
-            //     const ultimo = this.objProcesso.uniCatUso[this.objProcesso.uniCatUso.length - 1];
-            //     if (!ultimo) {
-            //         return true;
-            //     }
-            //     return ultimo.nome && ultimo.valor !== null;
-            // },
+            podeAtribuirProcessos() {
+                let rfAtual = document.getElementById('rf-usuario')?.textContent?.trim();
+                if (rfAtual === "d851026" || rfAtual === "d912346") {
+                    return true;
+                }
+                return false;
+            },
             processoLinkAD() {
-                let linkAD = this.PREFIXO_LINK_AD + this.objProcesso.LinkProcessoAD;
+                let linkAD = this.PREFIXO_LINK_AD + this.objProcesso?.LinkProcessoAD;
                 return linkAD;
             },
             processoVinculadoLinkAD() {
-                let linkAD = this.PREFIXO_LINK_AD + this.objProcessoVinculado.LinkProcessoAD;
+                let linkAD = this.PREFIXO_LINK_AD + this.objProcessoVinculado?.LinkProcessoAD;
                 return linkAD;
             },
 
             somaTotal() {
                 return this.valoresCalc.reduce((acc, val) => acc + (parseFloat(val) || 0), 0)
-            }
+            },
+            unidadesAtribuidasHIS1() {
+                if (!this.objProcesso?.listaBlocos) return 0;
 
+                let total = 0;
+
+                this.objProcesso.listaBlocos.forEach(bloco => {
+                    bloco.listaPavimentos?.forEach(pavimento => {
+                        pavimento.listaUnidades?.forEach(unidade => {
+                            if (unidade.cat === 'HIS1') {
+                                total += 1;
+                            }
+                        });
+                    });
+                });
+
+                return total;
+            },
+            unidadesAtribuidasHIS2() {
+                if (!this.objProcesso?.listaBlocos) return 0;
+
+                let total = 0;
+
+                this.objProcesso.listaBlocos.forEach(bloco => {
+                    bloco.listaPavimentos?.forEach(pavimento => {
+                        pavimento.listaUnidades?.forEach(unidade => {
+                            if (unidade.cat === 'HIS2') {
+                                total += 1;
+                            }
+                        });
+                    });
+                });
+
+                return total;
+            },
+            unidadesAtribuidasHMP() {
+                if (!this.objProcesso?.listaBlocos) return 0;
+
+                let total = 0;
+
+                this.objProcesso.listaBlocos.forEach(bloco => {
+                    bloco.listaPavimentos?.forEach(pavimento => {
+                        pavimento.listaUnidades?.forEach(unidade => {
+                            if (unidade.cat === 'HMP') {
+                                total += 1;
+                            }
+                        });
+                    });
+                });
+
+                return total;
+            },
+            unidadesAtribuidasR2hR2v() {
+                if (!this.objProcesso?.listaBlocos) return 0;
+
+                let total = 0;
+
+                this.objProcesso.listaBlocos.forEach(bloco => {
+                    bloco.listaPavimentos?.forEach(pavimento => {
+                        pavimento.listaUnidades?.forEach(unidade => {
+                            if (unidade.cat === 'R2v' || unidade.cat === 'R2h') {
+                                total += 1;
+                            }
+                        });
+                    });
+                });
+
+                return total;
+            },
+            podeValidar() {
+                /*
+                <div class="col HIS1">HIS1: </div>
+                    <div class="col HIS1 text-right">@{{objProcesso.NumUnidadesHIS1 - unidadesAtribuidasHIS1}}</div>
+                </div>
+                <div class="row">
+                    <div class="col HIS2">HIS2: </div>
+                    <div class="col HIS2 text-right">@{{objProcesso.NumUnidadesHIS2 - unidadesAtribuidasHIS2}}</div>
+                </div>
+                <div class="row">
+                    <div class="col HMP">HMP: </div>
+                    <div class="col HMP text-right">@{{objProcesso.NumUnidadesHMP - unidadesAtribuidasHMP}}</div>
+                </div>
+                <div class="row">
+                    <div class="col R2v">R2v: </div>
+                    <div class="col R2v text-right">@{{objProcesso.NumUnidadesR2hR2v - unidadesAtribuidasR2hR2v}}</div>
+                */
+                let his1Restantes = this.objProcesso.NumUnidadesHIS1 - this.unidadesAtribuidasHIS1;
+                let his2Restantes = this.objProcesso.NumUnidadesHIS2 - this.unidadesAtribuidasHIS2;
+                let hmpRestantes = this.objProcesso.NumUnidadesHMP - this.unidadesAtribuidasHMP;
+                let r2hr2vRestantes = this.objProcesso.NumUnidadesR2hR2v - this.unidadesAtribuidasR2hR2v;
+                if (!his1Restantes && !his2Restantes & !hmpRestantes & !r2hr2vRestantes) {
+                    return true;
+                }
+
+                return false;
+            }
+        },
+        watch: {
+            objProcesso: {
+                deep: true,
+                handler() {
+                    clearTimeout(this.autosaveTimeout);
+                    // Backup automatico / 'Autosave'
+                    this.autosaveTimeout = setTimeout(() => {
+                        try {
+                            localStorage.setItem(
+                                'processo_backup',
+                                JSON.stringify(this.objProcesso)
+                            );
+                            console.log("Autosave em " + new Date(Date.now()));
+                        } catch (e) {
+                            console.warn('Falha ao salvar backup local', e);
+                        }
+                    }, 1000);
+                }
+            }
         },
         mounted() {
             this.carregarOptions();
             this.carregarProcesso();
         },
         methods: {
-            adicionarUniCatUso() {
-                this.objProcesso.uniCatUso.push({
-                    nome: '',
-                    valor: null
-                });
+            restaurarBackupCorrespondente() {
+                const backup = localStorage.getItem('processo_backup');
+                if (!backup) return;
+
+                try {
+                    const objBackup = JSON.parse(backup);
+
+                    if (
+                        objBackup &&
+                        objBackup.id !== undefined &&
+                        objBackup.id === this.objProcesso.id
+                    ) {
+                        this.objProcesso = objBackup;
+                        // window.alert("Dados recuperados com sucesso :)")
+                        this.mostrarToast('Dados recuperados com sucesso', 'success');
+                    } else {
+                        localStorage.removeItem('processo_backup');
+                    }
+                } catch (e) {
+                    localStorage.removeItem('processo_backup');
+                }
             },
+
+            async botaoDoPanico() {
+                try {
+                    if (!this.objProcesso) {
+                        console.warn('objProcesso está vazio');
+                        return;
+                    }
+
+                    const json = JSON.stringify(this.objProcesso);
+
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(json);
+                        console.log('JSON copiado (Clipboard API)');
+                        return;
+                    }
+
+                    const textarea = document.createElement('textarea');
+                    textarea.value = json;
+                    textarea.setAttribute('readonly', '');
+                    textarea.style.position = 'fixed';
+                    textarea.style.left = '-9999px';
+
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+
+                    console.log('JSON copiado (fallback)');
+                    window.alert("Copiado com sucesso. Cole no Bloco de Notas e salve.")
+                } catch (error) {
+                    console.error('Erro ao copiar JSON:', error);
+                }
+            },
+
+            downloadObjetoProcesso() {
+                let conteudo = '';
+                let mimeType = 'application/json';
+                let extensao = 'json';
+
+                try {
+                    // Gera JSON compacto (ideal para armazenamento)
+                    conteudo = JSON.stringify(this.objProcesso);
+
+                    // Validação explícita (garantia extra)
+                    JSON.parse(conteudo);
+                } catch (e) {
+                    // Fallback para texto
+                    conteudo = String(this.objProcesso);
+                    mimeType = 'text/plain';
+                    extensao = 'txt';
+                }
+
+                const blob = new Blob([conteudo], {
+                    type: mimeType
+                });
+                const url = window.URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `processo_${this.objProcesso.id}_${Date.now()}.${extensao}`;
+                document.body.appendChild(a);
+                a.click();
+
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            },
+
             adicionarBloco(deveCopiar = false) {
                 let objBloco = {
+                    pavimentosNegativos: 0,
                     listaPavimentos: []
                 }
 
                 let listaRef = this.objProcesso.listaBlocos;
 
                 if (deveCopiar) {
-                    objBloco = JSON.parse(JSON.stringify(listaRef[listaRef.length-1]))
+                    objBloco = JSON.parse(JSON.stringify(listaRef[listaRef.length - 1]))
                 }
 
                 listaRef.push(objBloco);
@@ -341,10 +666,10 @@
             removerBloco() {
                 this.objProcesso.listaBlocos.pop();
             },
-            adicionarPavimento(indiceBloco, deveCopiar = false) {
+            adicionarPavimento(indiceBloco, deveCopiar = false, deveUsarMultiplicador = false) {
                 let objPavimento = {
                     listaUnidades: [{
-                        categoria: ""
+                        cat: ""
                     }]
                 }
                 let listaRef = this.objProcesso.listaBlocos[indiceBloco].listaPavimentos;
@@ -362,28 +687,34 @@
                     }
                 }
 
-                listaRef.push(objPavimento);
+                let multiplicadorUsado = deveUsarMultiplicador ? this.multiplicador : 1;
+                for (let i = 0; i < multiplicadorUsado; i++) {
+                    listaRef.push(objPavimento);
+                }
             },
             removerPavimento(indiceBloco) {
                 this.objProcesso.listaBlocos[indiceBloco].listaPavimentos.pop();
             },
-            adicionarUnidade(indiceBloco, indicePavimento, deveCopiar = false) {
+            adicionarUnidade(indiceBloco, indicePavimento, deveCopiar = false, deveUsarMultiplicador = false) {
                 console.log("AdicionarUnidade", indiceBloco, indicePavimento, deveCopiar);
                 // objProcesso.listaBlocos[indiceBloco].listaPavimentos[indicePavimento].listaUnidades
                 let objUnidade = {
-                    categoria: null
+                    cat: null
                 };
                 let listaRef = this.objProcesso.listaBlocos[indiceBloco].listaPavimentos[indicePavimento].listaUnidades;
                 console.log(this.objProcesso.listaBlocos);
 
                 if (deveCopiar) {
                     try {
-                        objUnidade.categoria = listaRef[listaRef.length - 1].categoria;
+                        objUnidade.cat = listaRef[listaRef.length - 1].cat;
                     } catch (e) {
                         console.error("ERRO AO COPIAR UNIDADE: ", e);
                     }
                 }
-                listaRef.push(objUnidade);
+                let multiplicadorUsado = deveUsarMultiplicador ? this.multiplicador : 1;
+                for (let i = 0; i < multiplicadorUsado; i++) {
+                    listaRef.push(objUnidade);
+                }
             },
             removerUnidade(indiceBloco, indicePavimento) {
                 this.objProcesso.listaBlocos[indiceBloco].listaPavimentos[indicePavimento].listaUnidades.pop();
@@ -391,6 +722,47 @@
 
             carregarOptions() {
                 this.opcoesUniCatUso = this.opcoesUniCatUsoR.concat(this.opcoesUniCatUsoNR);
+            },
+
+            async adicionarProcessoAListaNegra() {
+
+                const confirmar = window.confirm(
+                    'Tem certeza que deseja adicionar o processo à lista?'
+                );
+
+                if (!confirmar) {
+                    return; // usuário cancelou
+                }
+
+                const rfValidador = document.getElementById('rf-usuario')?.textContent?.trim();
+
+                if (!rfValidador) {
+                    console.warn('rfValidador não encontrado');
+                    return;
+                }
+
+                try {
+                    this.isCarregando = true;
+
+                    const response = await fetch(
+                        `api/adicionarProcessoAListaNegra?rfValidador=${encodeURIComponent(rfValidador)}&id=${this.objProcesso.id}`
+                    );
+
+                    if (!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+
+                    const data = await response.json();
+
+                    // opcional: feedback visual
+                    window.alert('Processo adicionado à lista com sucesso.');
+
+                } catch (error) {
+                    console.error('Erro na requisição:', error);
+                    window.alert('FALHA AO CARREGAR: ' + error);
+                } finally {
+                    this.isCarregando = false;
+                }
             },
 
             async carregarProcesso() {
@@ -416,11 +788,13 @@
 
                     this.objProcesso = data.objProcesso;
                     this.objProcessoVinculado = data.objProcessoVinculado;
-                    console.log("PROCESSO:");
-                    console.log(this.objProcesso);
                     this.estimarDistribuicaoDeUnidades();
                     this.possuiConteudo = true;
-
+                    try {
+                        this.restaurarBackupCorrespondente();
+                    } catch (e) {
+                        console.error("Falha ao restaurar backup automatico", e);
+                    }
                     this.isCarregando = false;
                     this.$forceUpdate();
                 } catch (error) {
@@ -523,6 +897,33 @@
                 });
                 this.$forceUpdate();
             },
+
+            mostrarToast(mensagem, tipo = 'success') {
+                console.log("MOSTRAR TOAST")
+                // limpa timeout anterior
+                if (this.toast.timeout) {
+                    clearTimeout(this.toast.timeout);
+                }
+
+                this.toast.mensagem = mensagem;
+
+                const tipos = {
+                    success: 'text-bg-success',
+                    danger: 'text-bg-danger',
+                    warning: 'text-bg-warning',
+                    info: 'text-bg-info'
+                };
+
+                this.toast.tipoClasse = tipos[tipo] || 'text-bg-secondary';
+                this.toast.visivel = true;
+
+                // auto fade-out após 3s
+                this.toast.timeout = setTimeout(() => {
+                    this.toast.visivel = false;
+                    console.log("Ocultar toast")
+                }, 3000);
+            },
+
             piscarInputs() {
                 let inputs = document.querySelectorAll('.uniCatInput');
                 inputs.forEach(input => {
@@ -558,16 +959,6 @@
                 alert(this.mensagem)
             },
 
-            procurarCatUso() {
-                try {
-                    let catUsoPrincipal = this.melhorCorrespondenciaCatUso(this.objProcesso.categoria);
-                    this.objProcesso.uniCatUso[0].nome = catUsoPrincipal;
-                    this.objProcesso.uniCatUso[0].valor = this.procurarUnidades();
-                } catch (err) {
-                    console.warn("Não achou catUso", err);
-                }
-            },
-
             procurarOutorga() {
                 try {
                     const {
@@ -600,110 +991,10 @@
                 }
             },
 
-            procurarUnidades() {
-                try {
-                    let numUnidades = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docConclusao, 'UNIDADE');
-                    if (!numUnidades) {
-                        numUnidades = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docCodReferenciado, 'UNIDADE');
-                    }
-                    if (!numUnidades) {
-                        numUnidades = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docCodReferenciado, 'UNIDADE');
-                    }
-                    return numUnidades;
-                } catch (err) {
-                    console.warn("procurar unidades: ", err);
-                }
-                return null;
-            },
-            procurarBlocos() {
-                try {
-                    let numBlocos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docConclusao, 'PREDIO');
-                    if (!numBlocos) {
-                        numBlocos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docConclusao, 'BLOCO');
-                    }
-                    if (!numBlocos) {
-                        numBlocos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docConclusao, 'TORRE');
-                    }
-                    if (!numBlocos) {
-                        numBlocos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docCodReferenciado, 'PREDIO');
-                    }
-                    if (!numBlocos) {
-                        numBlocos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docCodReferenciado, 'BLOCO');
-                    }
-                    if (!numBlocos) {
-                        numBlocos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docCodReferenciado, 'TORRE');
-                    }
-                    // DEPOIS DA PALAVRA
-                    if (!numBlocos) {
-                        numBlocos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docConclusao, 'PREDIO');
-                    }
-                    if (!numBlocos) {
-                        numBlocos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docConclusao, 'BLOCO');
-                    }
-                    if (!numBlocos) {
-                        numBlocos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docConclusao, 'TORRE');
-                    }
-                    if (!numBlocos) {
-                        numBlocos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docCodReferenciado, 'PREDIO');
-                    }
-                    if (!numBlocos) {
-                        numBlocos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docCodReferenciado, 'BLOCO');
-                    }
-                    if (!numBlocos) {
-                        numBlocos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docCodReferenciado, 'TORRE');
-                    }
-                    // FIM DEPOIS DA PALAVRA
-                    if (!numBlocos) {
-                        numBlocos = 1;
-                    }
-                    return numBlocos;
-                } catch (err) {
-                    console.warn("procurar Blocos: ", err);
-                }
-                return null;
-            },
-            procurarPavimentos() {
-                try {
-                    let numPavimentos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docConclusao, 'ANDAR');
-                    if (!numPavimentos) {
-                        numPavimentos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docConclusao, 'PAVIMENTO');
-                    }
-                    if (!numPavimentos) {
-                        numPavimentos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docCodReferenciado, 'ANDAR');
-                    }
-                    if (!numPavimentos) {
-                        numPavimentos = this.encontrarNumeroAntesDaPalavra(this.objProcesso.docCodReferenciado, 'PAVIMENTO');
-                    }
-                    // DEPOIS PALAVRA
-                    if (!numPavimentos) {
-                        numPavimentos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docConclusao, 'ANDAR');
-                    }
-                    if (!numPavimentos) {
-                        numPavimentos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docConclusao, 'PAVIMENTO');
-                    }
-                    if (!numPavimentos) {
-                        numPavimentos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docCodReferenciado, 'ANDAR');
-                    }
-                    if (!numPavimentos) {
-                        numPavimentos = this.encontrarNumeroDepoisDaPalavra(this.objProcesso.docCodReferenciado, 'PAVIMENTO');
-                    }
-                    // FIM DEPOIS PALAVRA
-                    if (!numPavimentos) {
-                        return 1;
-                    }
-                    return numPavimentos;
-                } catch (err) {
-                    console.warn("procurar Pavimentos: ", err);
-                }
-                return null;
-            },
-
             // Validacao de Unidades
             estimarDistribuicaoDeUnidades() {
-                console.log("estimarDistribuicaoDeUnidades()");
                 if (!this.objProcesso.NumBlocos) {
-                    window.alert("Não foi possível estimar a distribuição de unidades:\r\n\nNúmero de blocos indefinido");
-                    return;
+                    this.objProcesso.NumBlocos = 1;
                 }
 
                 let somaDeHis = this.objProcesso.NumUnidadesHIS1 + this.objProcesso.NumUnidadesHIS2;
@@ -726,28 +1017,78 @@
                 this.objProcesso.listaBlocos = [];
 
                 // for (let i = 1; i <= this.objProcesso.NumBlocos; i++) {
-                    let objBloco = {
-                        // indice: i,
-                        numPavimentosBloco: this.objProcesso.NumPavimentos,
-                        maxUnidadesPorPavimento: Math.round(numUnidadesPorBloco / this.objProcesso.NumPavimentos),
-                        listaPavimentos: []
-                    }
+                let objBloco = {
+                    // indice: i,
+                    numPavimentosBloco: this.objProcesso.NumPavimentos,
+                    pavimentosNegativos: 0,
+                    // maxUnidadesPorPavimento: Math.round(numUnidadesPorBloco / this.objProcesso.NumPavimentos),
+                    listaPavimentos: []
+                }
 
-                    // for (let j = 0; j < this.objProcesso.NumPavimentos; j++) {
-                    let objPavimento = {
-                        listaUnidades: [{
-                            categoria: ""
-                        }]
-                    }
+                // for (let j = 0; j < this.objProcesso.NumPavimentos; j++) {
+                let objPavimento = {
+                    listaUnidades: [{
+                        cat: ""
+                    }]
+                }
 
-                    objBloco.listaPavimentos.push(objPavimento);
-                    // }
-
-                    this.objProcesso.listaBlocos.push(objBloco);
+                objBloco.listaPavimentos.push(objPavimento);
                 // }
+
+                this.objProcesso.listaBlocos.push(objBloco);
+                // }
+            },
+            // atribuirProcesso
+            async atribuirProcesso() {
+                if (!this.podeAtribuirProcessos) {
+                    return;
+                }
+
+
+                if (!this.numeroAD || this.numeroAD.length < 5) {
+                    alert('O número AD deve possuir pelo menos 5 caracteres.');
+                    return;
+                }
+                if (!this.rfAtribuido || this.rfAtribuido.length < 7) {
+                    alert('O login deve ser dXXXXXX');
+                    return;
+                }
+
+
+                try {
+                    let rfAtual = document.getElementById('rf-usuario')?.textContent?.trim();
+                    const response = await fetch('api/atribuirProcesso', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            rfValidador: this.rfAtribuido,
+                            numeroAD: this.numeroAD,
+                            rfSolicitante: rfAtual
+                        })
+                    });
+
+                    if (!response.ok) throw new Error('Erro na requisição');
+
+                    const data = await response.json();
+                    window.alert('Atribuído com sucesso!');
+
+
+                } catch (error) {
+                    console.error("ERRO AO ATRIBUIR: ", error);
+                    this.msgStatus = error.response?.data?.message || 'Erro ao atribuir processo.';
+                }
             },
 
             async validarProcessoUnidades() {
+                try {
+                    this.downloadObjetoProcesso();
+
+                } catch (e) {
+                    console.error("FALHA AO BAIXAR BACKUP DO PROCESSO.", e);
+                }
                 try {
                     this.isCarregando = true;
                     this.msgStatus = 'Validando informações...';
@@ -828,5 +1169,53 @@
 
     #calculadora.expandido #conteudo-calc {
         display: block;
+    }
+
+    .HIS1 {
+        background-color: #8EA;
+    }
+
+    .HIS2 {
+        background-color: #8DE;
+    }
+
+    .HMP {
+        background-color: #CBE;
+    }
+
+    .R2v {
+        background-color: #EAA;
+    }
+
+    .R2h {
+        background-color: #F55;
+    }
+
+    #contador {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        width: 12%;
+        min-width: 136px;
+        height: 14em;
+        font-weight: bold;
+    }
+
+    #caixa-multiplicador {
+        position: fixed;
+        bottom: 16em;
+        left: 10px;
+        width: 12%;
+        min-width: 136px;
+        height: 8em;
+    }
+
+    #caixa-atribuir {
+        position: fixed;
+        bottom: 27em;
+        left: 10px;
+        width: 12%;
+        min-width: 136px;
+        height: 18em;
     }
 </style>

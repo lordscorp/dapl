@@ -33,18 +33,14 @@
         <div class="card w-75 mx-auto mt-4">
             @include('partials.header', ['active' => 'tutorial'])
             <div class="card-body">
-                <div class="row my-4">
-                    <!-- <div class="col text-center"><a href="storage/Tutorial_DAPL.pptx">CLIQUE AQUI PARA ACESSAR O TUTORIAL</a></div> -->
-                    <div class="col text-center"><a href="storage/Tutorial_DAPL.pdf" target="_blank">CLIQUE AQUI PARA ACESSAR O TUTORIAL</a></div>
-                </div>
-                <!-- <div class="row border my-4" v-for="item in etapasTutorial">
+                <div class="row border my-4" v-for="item in etapasTutorial">
                     <div class="col d-flex align-items-center justify-content-center">
                         <p style="font-size: large;" class="my-4">@{{item.texto}}</p>
                     </div>
                     <div class="col">
                         <img :src="urlImgTutorial(item.etapa)" @click="abrirModal(urlImgTutorial(item.etapa))" class="mw-100" alt="">
                     </div>
-                </div> -->
+                </div>
             </div>
         </div>
     </div>

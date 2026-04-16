@@ -9,12 +9,16 @@ use App\Http\Controllers\BusinessIntelligence;
 use App\Http\Controllers\Utils;
 
 Route::get('/processoAValidar', [Processos::class, 'processoAValidar']);
+Route::get('/adicionarProcessoAListaNegra', [Processos::class, 'adicionarProcessoAListaNegra']);
 Route::get('/processoUnidadesAValidar', [Processos::class, 'processoUnidadesAValidar']);
 Route::get('/dadosDashboard', [Processos::class, 'dadosDashboard']);
+Route::get('/dadosDashboardFt2', [Processos::class, 'dadosDashboardFt2']);
 Route::get('/mockDadosDashboard', [Processos::class, 'mockDadosDashboard']);
+Route::post('/atribuirProcesso', [Processos::class, 'atribuirProcesso']);
 Route::post('/validarProcesso', [Processos::class, 'validarProcesso']);
 Route::post('/validarProcessoUnidades', [Processos::class, 'validarProcessoUnidades']);
 Route::get('/exportarValidados', [Processos::class, 'exportarValidados']);
+Route::get('/exportarExcelListaBlocos', [Processos::class, 'exportarExcelListaBlocos']);
 Route::get('/consultarSubprefeitura', [Utils::class, 'consultarSubprefeitura']);
 Route::post('/consultarSubprefeituras', [Utils::class, 'consultarSubprefeitura']);
 
