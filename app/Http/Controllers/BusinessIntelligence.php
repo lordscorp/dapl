@@ -6,6 +6,8 @@ use App\Services\BusinessIntelligenceService;
 use App\Services\LogService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use App\Exports\ProcessosBiExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class BusinessIntelligence extends Controller
 {
@@ -31,7 +33,7 @@ class BusinessIntelligence extends Controller
 
         try {
             $this->logService->registrarDaSessao("Busca SQL", $sqlIncra);
-    
+
             $resultado = $this->biService->buscarPorSqlIncra($sqlIncra);
         } catch (\Throwable $e) {
             // Evita vazar detalhes de erro
@@ -43,5 +45,47 @@ class BusinessIntelligence extends Controller
         }
 
         return response()->json($resultado, 200);
+    }
+
+    /**
+     * POST /api/bi/buscarprocessos
+     */
+
+    public function buscarProcessos(Request $request)
+    {
+        set_time_limit(10);
+
+        $dados = $request->validate([
+            'dataInicio'        => 'required|date',
+            'dataFim'           => 'nullable|date',
+            'assuntos'          => 'nullable|array',
+            'situacoes'         => 'nullable|array',
+            'distritos'         => 'nullable|array',
+            'subprefeituras'    => 'nullable|array',
+            'gerarXlsx'         => 'nullable|boolean',
+        ]);
+
+        if ($request->boolean('gerarXlsx')) {
+            $query = $this->biService->buscarProcessos($dados, true);
+
+            return Excel::download(
+                new ProcessosBiExport($query),
+                'processos.xlsx'
+            );
+        }
+
+        $resultado = $this->biService->buscarProcessos($dados);
+        return response()->json($resultado);
+    }
+    
+    /**
+     * GET /api/bi/listarfiltros
+     */
+
+    public function listarFiltros()
+    {
+        return response()->json(
+            $this->biService->listarFiltros()
+        );
     }
 }

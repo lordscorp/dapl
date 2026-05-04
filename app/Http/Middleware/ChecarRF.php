@@ -15,6 +15,12 @@ class ChecarRF
      */
     public function handle(Request $request, Closure $next, ...$apenasBI): Response
     {
+
+        // Se for rota de API, NÃO redireciona
+        if ($request->is('api/*')) {
+            return $next($request);
+        }
+
         // $rf = session('IDUsuario');
         $rf = $_SESSION['IDUsuario'];
 
@@ -31,13 +37,6 @@ class ChecarRF
             'd930678',
             'd950688'
         ];
-
-        // Se puder acessar apenas BI, direciona
-        // if (!empty($apenasBI) && in_array($rf, $apenasBI)) {
-        //     if (!$request->routeIs('businessintelligence')) {
-        //         return redirect()->route('businessintelligence');
-        //     }
-        // }
 
         if (!empty($apenasBI) && in_array($rf, $apenasBI)) {
             // evita loop

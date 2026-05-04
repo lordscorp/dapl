@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Carbon;
 use App\Http\Controllers\Processos;
 use App\Http\Controllers\Outorga;
 use App\Http\Controllers\BusinessIntelligence;
@@ -24,6 +22,8 @@ Route::post('/consultarSubprefeituras', [Utils::class, 'consultarSubprefeitura']
 
 // BI
 Route::get('/bi/buscarsql', [BusinessIntelligence::class, 'buscarSqlIncra']);
+Route::get('/bi/listarFiltros', [BusinessIntelligence::class, 'listarFiltros']);
+Route::post('/bi/buscarProcessos', [BusinessIntelligence::class, 'buscarProcessos']);
 
 // OODC
 Route::post('/outorga/calcularOutorga', [Outorga::class, 'calcularOutorga']);
