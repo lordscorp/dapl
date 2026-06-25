@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Ft3;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-// use Illuminate\Support\Facades\Storage;
 use App\Exports\ValidadosExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
@@ -15,33 +15,30 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 
-class Processos extends Controller
+class Ft3Processos extends Controller
 {
+    public const TABELA = 'empreendimentos';
     /// GET
     public function dadosDashboard()
     {
+        return 'Endpoint funcional';
 
-        $path = storage_path('app/idsHisHmp1419.txt');
-        $ids = array_filter(array_map('trim', file($path)));
-        $dados = DB::table('levantamentohis')
-            ->whereIn('autonum', $ids)
+        $dados = DB::table(self::TABELA)
+            ->where('ft1ValidadoEm' != NULL)
             ->selectRaw('
-            COUNT(autonum) as totalHisHmp,
+            COUNT(id) as totalHisHmp,
             SUM(CASE WHEN validando = 1 THEN 1 ELSE 0 END) as totalValidando,
             SUM(CASE WHEN validado = 0 THEN 1 ELSE 0 END) as totalPendente,
             SUM(CASE WHEN validado = 1 THEN 1 ELSE 0 END) as totalValidado
         ')
             ->first();
 
-        // return response()->json($dados);
-
-        $validando = DB::table('levantamentohis')
-            ->select(['rfValidador', 'autonum', 'processo', 'sql_INCRA'])
+        $validando = DB::table(self::TABELA)
+            ->select(['rfValidador', 'id', 'processo', 'sql_INCRA'])
             ->where('validando', 1)
             ->get();
 
-        $validadores = DB::table('levantamentohis')
-            ->whereIn('autonum', $ids)
+        $validadores = DB::table(self::TABELA)
             ->whereNotNull('rfValidador')
             ->select('rfValidador', DB::raw('COUNT(*) as total'))
             ->groupBy('rfValidador')
@@ -61,7 +58,7 @@ class Processos extends Controller
         $path = storage_path('app/idsHisHmp20202026_mistos.txt');
 
         $ids = array_filter(array_map('trim', file($path)));
-        $dados = DB::table('tbl_planurb')
+        $dados = DB::table(self::TABELA)
             ->whereIn('id', $ids)
             ->selectRaw('
             COUNT(id) as totalHisHmp,
@@ -73,7 +70,7 @@ class Processos extends Controller
 
         // return response()->json($dados);
 
-        $validando = DB::table('tbl_planurb')
+        $validando = DB::table(self::TABELA)
             ->select(['rfValidador', 'id', 'NumeroAD', 'SQL'])
             ->where('validando', 1)
             ->where(function ($q) {
@@ -82,7 +79,7 @@ class Processos extends Controller
             })
             ->get();
 
-        $validadores = DB::table('tbl_planurb')
+        $validadores = DB::table(self::TABELA)
             ->whereIn('id', $ids)
             ->whereNotNull('rfValidador')
             ->where('validado', 1)
@@ -99,26 +96,6 @@ class Processos extends Controller
         return response()->json($dadosArray);
     }
 
-    public function mockDadosDashboard()
-    {
-        // Gera um número total aleatório entre 50 e 200
-        $totalHisHmp = rand(50, 200);
-
-        // Gera um número de validando entre 0 e 20
-        $totalValidando = rand(0, min(20, $totalHisHmp));
-
-        // Gera um número de validado entre 0 e (total - validando)
-        $totalValidado = rand(0, $totalHisHmp - $totalValidando);
-
-        $dados = (object) [
-            'totalHisHmp' => $totalHisHmp,
-            'totalValidando' => $totalValidando,
-            'totalValidado' => $totalValidado
-        ];
-
-        return response()->json($dados);
-    }
-
     public function adicionarProcessoAListaNegra(Request $request)
     {
         $idProcesso = $request->query('id');
@@ -131,7 +108,7 @@ class Processos extends Controller
         DB::transaction(function () use ($idProcesso, $rfValidador) {
 
             // 1. Atualiza o processo na tbl_planurb
-            DB::table('tbl_planurb')
+            DB::table(self::TABELA)
                 ->where('id', $idProcesso)
                 ->update([
                     'plantaSemCategoria' => 1
@@ -167,7 +144,7 @@ class Processos extends Controller
         DB::transaction(function () use ($numeroAD, $rfValidador, $rfSolicitante) {
 
             // 1. Atualiza o processo na tbl_planurb
-            DB::table('tbl_planurb')
+            DB::table(self::TABELA)
                 ->where('numeroAD', 'like', "%$numeroAD%")
                 ->update([
                     'plantaSemCategoria' => null,
@@ -242,8 +219,8 @@ class Processos extends Controller
         }
 
         // Atualiza o registro
-        DB::table('levantamentohis')
-            ->where('autonum', $data['autonum'])
+        DB::table(self::TABELA)
+            ->where('id', $data['id'])
             ->update($dadosUpdate);
 
         return response()->json(['status' => 'ok', 'atualizado' => $dadosUpdate]);
@@ -265,40 +242,38 @@ class Processos extends Controller
         ];
 
         // Atualiza o registro
-        DB::table('tbl_planurb')
+        DB::table(self::TABELA)
             ->where('id', $data['id'])
             ->update($dadosUpdate);
 
         return response()->json(['status' => 'ok', 'atualizado' => $dadosUpdate]);
     }
-
+// CAMPOS DA TABELA empreendimentos:
+// id, grupoAssuntoReferenciado, sqlIncra, codlog, nomeInteressado, endereco, usoDoimovel, num_HIS, num_HIS1, num_HIS2, num_HMP, num_EHIS, num_EHMP, num_R1, num_R2, listaBlocos, plantaExplicitaUnidades, plantaSemCategoria
     public function processoUnidadesAValidar(Request $request)
     {
         $rfValidador = $request->query('rfValidador');
-        $path = storage_path('app/idsHisHmp20202026_mistos.txt');
+        $path = storage_path('app/idsHisHmp20142019_mistos.txt');
         $ids = array_filter(array_map('trim', file($path)));
         $camposSelect = [
             'id',
-            'Assunto',
-            'NumeroAD',
-            'LinkProcessoAD',
-            'NumeroSEI',
-            'Tipologia',
-            'NumTotalUnidades',
-            'DataCriacao',
-            'SQL',
-            'Endereco',
-            'NumBlocos',
-            'NumPavimentos',
-            'NumUnidadesResidenciais',
-            'NumUnidadesHIS',
-            'NumUnidadesHIS1',
-            'NumUnidadesHIS2',
-            'NumUnidadesHMP',
-            'NumUnidadesR2hR2v'
+            'grupoAssuntoReferenciado',
+            'sqlIncra',
+            'codlog',
+            'blocos',
+            'pavimentos',
+            'num_HIS',
+            'num_HIS1',
+            'num_HIS2',
+            'num_HMP',
+            'num_EHIS',
+            'num_R2',
+            'listaBlocos', 
+            'plantaExplicitaUnidades', 
+            'plantaSemCategoria'
         ];
 
-        $registro = DB::table('tbl_planurb')
+        $registro = DB::table(self::TABELA)
             ->select($camposSelect)
             ->whereIn('id', $ids)
             ->where('rfValidador', $rfValidador)
@@ -310,10 +285,11 @@ class Processos extends Controller
             ->first();
 
         // SE NÃO HOUVER ALGUM EM VALIDAÇÃO, PROCURA ALGUM QUE TENHA SIDO ANALISADO PELO USUÁRIO
+        /*
         if (!$registro) {
             $rf = substr($rfValidador, 1, 6);
 
-            $registro = DB::table('tbl_planurb')
+            $registro = DB::table(self::TABELA)
                 ->select($camposSelect)
                 ->whereIn('id', $ids)
                 ->where(function ($query) {
@@ -345,10 +321,11 @@ class Processos extends Controller
                     ", [$rf, $rf])
                 ->first();
         }
+        */
 
         // SE NÃO HOUVER NENHUM DO USUÁRIO, PEGA O PRÓXIMO DA FILA
         if (!$registro) {
-            $registro = DB::table('tbl_planurb')
+            $registro = DB::table(self::TABELA)
                 ->select($camposSelect)
                 ->whereIn('id', $ids)
                 ->where(function ($query) {
@@ -360,7 +337,7 @@ class Processos extends Controller
                             ->orWhere('validado', 0);
                     });
                 })
-                ->orderByDesc('NumUnidadesResidenciais')
+                ->orderByDesc('areaConstruida')
                 ->first();
 
             if (!$registro) {
@@ -369,21 +346,37 @@ class Processos extends Controller
         }
 
         $registroVinculado = null;
+        $camposSelectVinculado = [
+            'id',
+            'grupoAssuntoReferenciado',
+            'sqlIncra',
+            'codlog',
+            'blocos',
+            'pavimentos',
+            'num_HIS',
+            'num_HIS1',
+            'num_HIS2',
+            'num_HMP',
+            'num_EHIS',
+            'num_R2',
+            'listaBlocos', 
+            'plantaExplicitaUnidades', 
+            'plantaSemCategoria'
+        ];
 
         try {
             // 1) Tenta encontrar primeiro "Modificativo"
-            $registroVinculado = DB::table('tbl_planurb')
-                ->select($camposSelect)
-                ->where('SQL', $registro->SQL)          // mesmo Setor/Quadra/Lote
-                ->where('id', '<>', $registro->id)     // ignora o próprio registro
+            $registroVinculado = DB::table('levantamentohis')
+                ->select($camposSelectVinculado)
+                ->where('sql_incra', $registro->SQL)          // mesmo Setor/Quadra/Lote
                 ->where('Assunto', 'like', '%Modificativo%')
                 ->first();
 
             // 2) Se não encontrou, tenta "Aprovação"
             if (!$registroVinculado) {
-                $registroVinculado = DB::table('tbl_planurb')
-                    ->select($camposSelect)
-                    ->where('SQL', $registro->SQL)
+                $registroVinculado = DB::table('levantamentohis')
+                    ->select($camposSelectVinculado)
+                    ->where('sql_incra', $registro->SQL)
                     ->where('id', '<>', $registro->id)
                     ->where('Assunto', 'like', '%Aprova%')
                     ->first();
@@ -394,7 +387,7 @@ class Processos extends Controller
 
 
         // SALVA REGISTRO ENCONTRADO COMO 'VALIDANDO'
-        DB::table('tbl_planurb')
+        DB::table(self::TABELA)
             ->where('id', $registro->id)
             ->update([
                 'validando' => 1,
@@ -411,7 +404,7 @@ class Processos extends Controller
     {
         $rfValidador = $request->query('rfValidador');
         $camposSelect = [
-            'autonum',
+            'id',
             'codigoPedido',
             'sql_incra',
             'processo',
@@ -428,17 +421,17 @@ class Processos extends Controller
         $path = storage_path('app/idsHisHmp1419.txt');
         $ids = array_filter(array_map('trim', file($path)));
 
-        $registro = DB::table('levantamentohis')
+        $registro = DB::table(self::TABELA)
             ->select($camposSelect)
-            ->whereIn('autonum', $ids)
+            ->whereIn('id', $ids)
             ->where('validando', 1)
             ->where('rfValidador', $rfValidador)
             ->first();
 
         if (!$registro) {
-            $registro = DB::table('levantamentohis')
+            $registro = DB::table(self::TABELA)
                 ->select($camposSelect)
-                ->whereIn('autonum', $ids)
+                ->whereIn('id', $ids)
                 ->where(function ($query) {
                     $query->where(function ($q) {
                         $q->whereNull('validando')
@@ -452,9 +445,9 @@ class Processos extends Controller
                 ->first();
 
             // Busca o primeiro registro com validando = false e validado = false, ordenado por dtEmissao desc
-            // $registro = DB::table('levantamentohis')
+            // $registro = DB::table(self::TABELA)
             //     ->select($camposSelect)
-            //     ->whereIn('autonum', $ids)
+            //     ->whereIn('id', $ids)
             //     ->whereNull('validando')
             //     ->whereNull('validado')
             //     ->orderByDesc('dtEmissao')
@@ -466,10 +459,10 @@ class Processos extends Controller
             }
         }
 
-        $docsRelacionados = DB::table('levantamentohis')
+        $docsRelacionados = DB::table(self::TABELA)
             ->select('assunto', 'dtEmissao', 'doc_txt')
             ->where('sql_incra', $registro->sql_incra)
-            ->where('autonum', '<>', $registro->autonum)
+            ->where('id', '<>', $registro->id)
             ->orderBy('dtEmissao', 'desc')
             ->get()
             ->map(function ($doc) {
@@ -551,15 +544,15 @@ class Processos extends Controller
 
         // SALVA REGISTRO ENCONTRADO COMO 'VALIDANDO'
 
-        DB::table('levantamentohis')
-            ->where('autonum', $registro->autonum)
+        DB::table(self::TABELA)
+            ->where('id', $registro->id)
             ->update([
                 'validando' => 1,
                 'rfValidador' => $rfValidador,
             ]);
 
         // Carrega doc_txt do Alvara de Aprovacao
-        $docCodReferenciado = DB::table('levantamentohis')
+        $docCodReferenciado = DB::table(self::TABELA)
             ->select('assunto', 'dtEmissao', 'doc_txt', 'P_QTD_TERR_REAL', 'P_QTD_AREA_CNSR', 'P_QTD_AREA_CMPL')
             ->where('codigoPedido', $registro->codigoPedidoReferenciado)
             ->limit(1)
@@ -619,7 +612,7 @@ class Processos extends Controller
 
         return response()->json([
             'objProcesso' => [
-                'autonum'       => $registro->autonum,
+                'id'       => $registro->id,
                 'categoria'     => extrairLinha($registro->doc_txt, 21),
                 'proprietario'     => extrairLinha($registro->doc_txt, 8),
                 'processo'      => $registro->processo ?? '',
@@ -643,7 +636,7 @@ class Processos extends Controller
 
     public function exportarValidados()
     {
-        $registros = DB::table('tbl_planurb')
+        $registros = DB::table(self::TABELA)
             ->where(function ($query) {
                 $query->where('validado', 1)
                     ->orWhere('validando', 1);
@@ -655,7 +648,7 @@ class Processos extends Controller
 
     public function exportarValidadosFt1()
     {
-        $registros = DB::table('levantamentohis')
+        $registros = DB::table(self::TABELA)
             ->where(function ($query) {
                 $query->where('validado', 1)
                     ->orWhere('validando', 1);
@@ -668,7 +661,7 @@ class Processos extends Controller
 
     public function exportarExcelListaBlocos()
     {
-        $registros = DB::table('tbl_planurb')
+        $registros = DB::table(self::TABELA)
             ->select('id', 'listaBlocos')
             ->whereNotNull('listaBlocos')
             ->get();
@@ -810,7 +803,7 @@ class Processos extends Controller
 
     public function exportarExcelListaBlocosSemHeader()
     {
-        $registros = DB::table('tbl_planurb')
+        $registros = DB::table(self::TABELA)
             ->select('id', 'listaBlocos')
             ->whereNotNull('listaBlocos')
             ->get();

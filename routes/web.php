@@ -26,7 +26,17 @@ Route::get('/', function () {
     return view('dashboard', compact('nome', 'rf'));
 })->middleware('checarrf');
 
-Route::get('/validacao', function () {
+// Route::get('/validacao', function () {
+//     if (session_status() === PHP_SESSION_NONE) {
+//         session_start();
+//     }
+
+//     $nome = $_SESSION['nomeUsuario'] ?? 'Visitante';
+//     $rf = $_SESSION['IDUsuario'];
+
+//     return view('validacao', compact('nome', 'rf'));
+// })->middleware('checarrf');
+Route::get('/validacao-ft3', function () {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
@@ -34,7 +44,18 @@ Route::get('/validacao', function () {
     $nome = $_SESSION['nomeUsuario'] ?? 'Visitante';
     $rf = $_SESSION['IDUsuario'];
 
-    return view('validacao', compact('nome', 'rf'));
+    return view('validacao-ft3', compact('nome', 'rf'));
+})->middleware('checarrf');
+
+Route::get('/validacao-ft2', function () {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    $nome = $_SESSION['nomeUsuario'] ?? 'Visitante';
+    $rf = $_SESSION['IDUsuario'];
+
+    return view('validacao-ft2', compact('nome', 'rf'));
 })->middleware('checarrf');
 
 Route::get('/businessintelligence', function () {

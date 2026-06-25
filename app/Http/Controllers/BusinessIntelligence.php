@@ -65,6 +65,10 @@ class BusinessIntelligence extends Controller
             'gerarXlsx'         => 'nullable|boolean',
         ]);
 
+        $parametrosUsados = collect($dados)->toJson(JSON_PRETTY_PRINT);
+
+        $this->logService->registrarDaSessao("Busca Avançada", $parametrosUsados);
+
         if ($request->boolean('gerarXlsx')) {
             $query = $this->biService->buscarProcessos($dados, true);
 

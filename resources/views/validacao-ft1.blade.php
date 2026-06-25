@@ -24,7 +24,7 @@
             </div>
         </div>
         <div class="card w-75 mx-auto mt-4" id="container-principal">
-            @include('partials.header', ['active' => 'validacao'])
+            @include('partials.header', ['active' => 'validacao-ft1'])
             <div class="card-body" v-show="isCarregando">
                 <h2 class="text-center">@{{msgStatus}}</h2>
                 <div class="d-flex justify-content-center align-items-center"

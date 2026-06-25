@@ -1,22 +1,23 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Processos;
+use App\Http\Controllers\Ft2\Ft2Processos;
 use App\Http\Controllers\Outorga;
 use App\Http\Controllers\BusinessIntelligence;
 use App\Http\Controllers\Utils;
 
-Route::get('/processoAValidar', [Processos::class, 'processoAValidar']);
-Route::get('/adicionarProcessoAListaNegra', [Processos::class, 'adicionarProcessoAListaNegra']);
-Route::get('/processoUnidadesAValidar', [Processos::class, 'processoUnidadesAValidar']);
-Route::get('/dadosDashboard', [Processos::class, 'dadosDashboard']);
-Route::get('/dadosDashboardFt2', [Processos::class, 'dadosDashboardFt2']);
-Route::get('/mockDadosDashboard', [Processos::class, 'mockDadosDashboard']);
-Route::post('/atribuirProcesso', [Processos::class, 'atribuirProcesso']);
-Route::post('/validarProcesso', [Processos::class, 'validarProcesso']);
-Route::post('/validarProcessoUnidades', [Processos::class, 'validarProcessoUnidades']);
-Route::get('/exportarValidados', [Processos::class, 'exportarValidados']);
-Route::get('/exportarExcelListaBlocos', [Processos::class, 'exportarExcelListaBlocos']);
+Route::get('/ft2/processoAValidar', [Ft2Processos::class, 'processoAValidar']);
+Route::get('/ft2/adicionarProcessoAListaNegra', [Ft2Processos::class, 'adicionarProcessoAListaNegra']);
+Route::get('/ft2/processoUnidadesAValidar', [Ft2Processos::class, 'processoUnidadesAValidar']);
+Route::get('/ft2/dadosDashboard', [Ft2Processos::class, 'dadosDashboard']);
+Route::get('/ft2/dadosDashboardFt2', [Ft2Processos::class, 'dadosDashboardFt2']);
+Route::get('/ft2/mockDadosDashboard', [Ft2Processos::class, 'mockDadosDashboard']);
+Route::post('/ft2/atribuirProcesso', [Ft2Processos::class, 'atribuirProcesso']);
+Route::post('/ft2/validarProcesso', [Ft2Processos::class, 'validarProcesso']);
+Route::post('/ft2/validarProcessoUnidades', [Ft2Processos::class, 'validarProcessoUnidades']);
+Route::get('/ft2/exportarValidados', [Ft2Processos::class, 'exportarValidados']);
+Route::get('/ft2/exportarExcelListaBlocos', [Ft2Processos::class, 'exportarExcelListaBlocos']);
+
 Route::get('/consultarSubprefeitura', [Utils::class, 'consultarSubprefeitura']);
 Route::post('/consultarSubprefeituras', [Utils::class, 'consultarSubprefeitura']);
 

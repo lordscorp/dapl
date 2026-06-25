@@ -11,7 +11,7 @@
 
 <body>
     <div id="logout">
-        <span id="nome-usuario" style="opacity: 0;">Nome: {{ $nome }}</span><span id="rf-usuario">{{ $rf }}</span>
+        <span id="nome-usuario" style="opacity: 0;">Nome: {{ $nome }}</span><span id="rf-usuario" class="mr-2">{{ $rf }}</span>
         <a href="logout.php"><button class="btn btn-danger btn-sm float-right">Sair</button></a>
     </div>
     <div id="app">
@@ -32,15 +32,16 @@
         </div>
         <!-- FIM ALERTAS -->
         <div class="row w-75 mx-auto">
-            <div class="col-4">
+            <div class="col-2">
                 <img src="resources/img/logo_prefeitura.png" alt="PMSP">
             </div>
-            <div class="col">
+            <div class="col text-center">
                 <h1>DAPL - Dados Abertos de Processos de Licenciamento</h1>
+                <h4>Processos HIS/HMP 2020 a 2026</h4>
             </div>
         </div>
         <div class="card w-75 mx-auto mt-4" id="container-principal">
-            @include('partials.header', ['active' => 'validacao'])
+            @include('partials.header', ['active' => 'validacao-ft2'])
             <div class="card-body" v-show="isCarregando">
                 <h2 class="text-center">@{{msgStatus}}</h2>
                 <div class="d-flex justify-content-center align-items-center"
@@ -745,7 +746,7 @@
                     this.isCarregando = true;
 
                     const response = await fetch(
-                        `api/adicionarProcessoAListaNegra?rfValidador=${encodeURIComponent(rfValidador)}&id=${this.objProcesso.id}`
+                        `api/ft2/adicionarProcessoAListaNegra?rfValidador=${encodeURIComponent(rfValidador)}&id=${this.objProcesso.id}`
                     );
 
                     if (!response.ok) {
@@ -775,7 +776,7 @@
 
                 try {
                     this.isCarregando = true;
-                    const response = await fetch(`api/processoUnidadesAValidar?rfValidador=${encodeURIComponent(rfValidador)}`);
+                    const response = await fetch(`api/ft2/processoUnidadesAValidar?rfValidador=${encodeURIComponent(rfValidador)}`);
                     if (!response.ok) throw new Error(response);
 
                     const data = await response.json();
@@ -1057,7 +1058,7 @@
 
                 try {
                     let rfAtual = document.getElementById('rf-usuario')?.textContent?.trim();
-                    const response = await fetch('api/atribuirProcesso', {
+                    const response = await fetch('api/ft2/atribuirProcesso', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1093,7 +1094,7 @@
                     this.isCarregando = true;
                     this.msgStatus = 'Validando informações...';
 
-                    const response = await fetch('api/validarProcessoUnidades', {
+                    const response = await fetch('api/ft2/validarProcessoUnidades', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
