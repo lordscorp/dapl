@@ -130,7 +130,7 @@
         methods: {
             async carregarDadosDashboard(mock = false) {
                 try {
-                    let urlDadosDashboard = 'api/dadosDashboard';
+                    let urlDadosDashboard = 'api/dadosDashboardFt2';
                     
                     this.isCarregando = true;
                     const response = await fetch(mock ? urlDadosDashboardMock : urlDadosDashboard);

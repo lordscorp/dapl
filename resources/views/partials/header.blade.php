@@ -1,9 +1,9 @@
 <div id="container-header" class="card-header text-center">
     <ul class="nav nav-pills">
-        <!-- <li class="nav-item">
+        <li class="nav-item">
             <a class="nav-link {{ ($active ?? '') === 'dashboard' ? 'active' : '' }}" href="/">Dashboard</a>
         </li>
-        <li class="nav-item">
+        <!-- <li class="nav-item">
             <a class="nav-link {{ ($active ?? '') === 'validacao-ft3' ? 'active' : '' }}" href="validacao-ft3" title="Validação - Força Tarefa 3">Validação 3</a>
         </li>
         <li class="nav-item">

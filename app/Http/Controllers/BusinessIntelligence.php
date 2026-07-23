@@ -71,7 +71,7 @@ class BusinessIntelligence extends Controller
 
         if ($request->boolean('gerarXlsx')) {
             $query = $this->biService->buscarProcessos($dados, true);
-
+            set_time_limit(300);
             return Excel::download(
                 new ProcessosBiExport($query),
                 'processos.xlsx'
