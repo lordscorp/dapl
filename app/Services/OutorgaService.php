@@ -329,6 +329,33 @@ class OutorgaService
         return floatval(str_replace(',', '.', (string)$fator));
     }
 
+
+    /**
+     * Consulta o Fator Social (Fs) com base no tipo de uso e área da unidade.
+     *
+     * @param string $tipoUso Sigla do uso habitacional (ex: 'HIS', 'HMP', 'COMUM')
+     * @param float $areaUnidade Área da unidade habitacional em m²
+     * @return float|null Retorna o Fator Social ou nulo se não encontrar correspondência
+     */
+    public function consultarFatorSocial(string $tipoUso, float $areaUnidade = 0.0): ?float
+    {
+        $tipoUso = strtoupper(trim($tipoUso));
+
+        $fs = DB::table('oodc_quadro5_fs')
+            ->where('tipo_uso', $tipoUso)
+            ->where('area_minima', '<=', $areaUnidade)
+            ->where('area_maxima', '>=', $areaUnidade)
+            ->value('fs');
+
+        if ($fs === null) {
+            $this->logService->registrar("FS não encontrado", null, null, "Uso: {$tipoUso}, Área: {$areaUnidade}");
+            return null;
+        }
+
+        return (float) $fs;
+    }
+
+
     /**
      * Busca um processo na tabela empreendimentos pelo número do processo.
      *
