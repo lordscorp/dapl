@@ -339,6 +339,18 @@ class OutorgaService
      */
     public function consultarFatorSocial(string $tipoUso, float $areaUnidade = 0.0): ?float
     {
+        $uso = strtoupper(trim($tipoUso));        
+
+        if (str_starts_with($uso, 'HIS')) {
+            return 0.0;
+        }
+
+        if (str_starts_with($uso, 'HMP')) {
+            return 0.6;
+        }
+
+        return 1.0;
+
         $tipoUso = strtoupper(trim($tipoUso));
 
         $fs = DB::table('oodc_quadro5_fs')
