@@ -1,16 +1,19 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Feature\Services;
 
 use Tests\TestCase;
 use App\Services\LogService;
 use App\Services\OutorgaService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 
-class OutorgaServiceIntegrationTest extends TestCase
+class OutorgaIntegrationTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected OutorgaService $service;
     
     protected string $uso;

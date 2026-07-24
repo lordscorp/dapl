@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Api;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
@@ -129,7 +129,7 @@ class OutorgaEndpointTest extends TestCase
                  ->assertJson(['fs' => $valorEsperado]);
     }
 
-        public function test_endpoint_calcular_outorga()
+    public function test_endpoint_calcular_outorga()
     {
         $response = $this->postJson('/api/outorga/calcularOutorga', [
             'at' => $this->at,
