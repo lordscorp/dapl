@@ -126,6 +126,19 @@ class Outorga extends Controller
             'fp' => $fp
         ]);
     }
+    
+
+    public function consultarFatorSocial(Request $request)
+    {
+        $uso = $request->input('uso');
+        $area = $request->input('area');
+
+        $fs = $this->outorgaService->consultarFatorSocial($uso, $area);
+
+        return response()->json([
+            'fs' => $fs
+        ]);
+    }
 
 
     public function consultarValorM2(Request $request)

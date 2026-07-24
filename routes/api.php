@@ -30,6 +30,7 @@ Route::post('/bi/buscarProcessos', [BusinessIntelligence::class, 'buscarProcesso
 Route::post('/outorga/calcularOutorga', [Outorga::class, 'calcularOutorga']);
 Route::get('/outorga/consultarValorM2', [Outorga::class, 'consultarValorM2']);
 Route::get('/outorga/consultarFatorPlanejamento', [Outorga::class, 'consultarFatorPlanejamento']);
+Route::get('/outorga/consultarFatorSocial', [Outorga::class, 'consultarFatorSocial']);
 Route::get('/outorga/buscarProcessoAD', [Outorga::class, 'buscarProcessoAD']);
 Route::get('/outorga/calcularProcessosAD', [Outorga::class, 'calcularProcessosAD']);
 Route::get('/outorga/buscarProcessoSISACOE', [Outorga::class, 'buscarProcessoSISACOE']);
