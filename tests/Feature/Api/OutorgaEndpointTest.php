@@ -8,7 +8,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
-class OutorgaApiTest extends TestCase
+class OutorgaEndpointTest extends TestCase
 {
     // Isolamento do DB ao rodar o teste
     use RefreshDatabase;
@@ -80,6 +80,21 @@ class OutorgaApiTest extends TestCase
             'macroarea' => 'Macroárea de Qualificação da Urbanização',
             'perimetro' => '',
             'fp_R' => 0.8
+        ]);
+
+        Schema::create('oodc_quadro5_fs', function (Blueprint $table) {
+            $table->id();
+            $table->string('tipo_uso', 50)->nullable();
+            $table->decimal('area_minima', 6, 2)->nullable();
+            $table->decimal('area_maxima', 6, 2)->nullable();
+            $table->decimal('fs', 3, 1)->nullable();
+        });
+
+        DB::table('oodc_quadro5_fs')->insert([
+            'tipo_uso' => 'COMUM',
+            'area_minima' => 70.01,
+            'area_maxima' => 9999.99,
+            'fs' => 1
         ]);
 
     }
