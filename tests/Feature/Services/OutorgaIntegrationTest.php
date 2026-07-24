@@ -27,27 +27,36 @@ class OutorgaIntegrationTest extends TestCase
 
     public function test_consultar_valor_m2_retorna_valor_correto_para_2021()
     {
-        // Deve retornar o valor da tabela de 2020, pois não existe tabela para 2021
-        $resultado = $this->service->consultarValorM2(2021, $this->sql, $this->codlog);
+        $valorEsperado = 2078.16;
         
-        $this->assertEquals(2078.16, $resultado, 'O valor retornado do banco não é o esperado.');
+        // Deve retornar o valor da tabela de 2020, pois não existe tabela para 2021
+        $ano = 2021;        
+        $this->assertEquals(
+            $valorEsperado, 
+            $this->service->consultarValorM2($ano, $this->sql, $this->codlog), 
+            'O valor retornado para o valor do m² não é o esperado.'
+        );
     }
 
     public function test_consultar_fator_planejamento()
     {
         $valorEsperado = 0.8;
 
-        $resultado = $this->service->consultarFatorPlanejamento($this->setor, $this->quadra);
-
-        $this->assertEquals($valorEsperado, $resultado, 'O fator de planejamento retornado não é o esperado.');
+        $this->assertEquals(
+            $valorEsperado,
+            $this->service->consultarFatorPlanejamento($this->setor, $this->quadra),
+            'O fator de planejamento retornado não é o esperado.'
+        );
     }
 
     public function test_consultar_fator_social()
     {
         $valorEsperado = 1.0;
 
-        $resultado = $this->service->consultarFatorSocial($this->uso, $this->ac);
-
-        $this->assertEquals($valorEsperado, $resultado, 'O fator de social retornado não é o esperado.');
+        $this->assertEquals(
+            $valorEsperado, 
+            $this->service->consultarFatorSocial($this->uso, $this->ac), 
+            'O fator de social retornado não é o esperado.'
+        );
     }
 }
