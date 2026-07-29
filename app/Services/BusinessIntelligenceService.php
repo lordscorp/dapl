@@ -8,16 +8,29 @@ use Illuminate\Support\Facades\Cache;
 
 class BusinessIntelligenceService
 {
-    protected string $connection = 'sqlsrv';
-    protected string $schema = 'dbo';
+    protected string $connection;
+    protected string $schema;
     protected string $viewSqlIncra = 'prata_sql_incra';
     protected string $viewAssuntos = 'prata_assunto';
+    protected string $viewInteressados = 'prata_interessado';
+
+    
+    public function __construct()
+    {
+        $this->connection = env('SQLSRV_CONNECTION', 'sqlsrv');
+        $this->schema = env('DB_SQLSRV_SCHEMA', 'dbo');
+    }
+
+    protected function prefixoSchema(): string
+    {
+        return $this->schema ? $this->schema . '.' : '';
+    }
 
     public function buscarPorSqlIncra(string $sqlIncra): array
     {
-        $tSqlIncra = $this->schema . '.' . $this->viewSqlIncra;     // dbo.prata_sql_incra
-        $tAssunto  = $this->schema . '.prata_assunto';              // dbo.prata_assunto
-        $tInteressado  = $this->schema . '.prata_interessado';      // dbo.prata_interessado
+        $tSqlIncra = $this->prefixoSchema() . $this->viewSqlIncra;              // dbo.prata_sql_incra
+        $tAssunto  = $this->prefixoSchema() . $this->viewAssuntos;              // dbo.prata_assunto
+        $tInteressado  = $this->prefixoSchema() . $this->viewInteressados;      // dbo.prata_interessado
 
         $digits = preg_replace('/\D+/', '', $sqlIncra ?? '');
 
@@ -84,8 +97,8 @@ class BusinessIntelligenceService
 
     public function buscarPorSqlIncra_old(string $sqlIncra): array
     {
-        $tSqlIncra = $this->schema . '.' . $this->viewSqlIncra;         // dbo.prata_sql_incra
-        $tAssunto  = $this->schema . '.prata_assunto';          // dbo.prata_assunto
+        $tSqlIncra = $this->prefixoSchema() . $this->viewSqlIncra;          // dbo.prata_sql_incra
+        $tAssunto  = $this->prefixoSchema() . $this->viewAssuntos;          // dbo.prata_assunto
 
         $rows = DB::connection($this->connection)
             ->table($tSqlIncra . ' as sqlincra')
@@ -106,9 +119,9 @@ class BusinessIntelligenceService
     public function buscarProcessosQuery(array $filtros)
     {
         // ->table("{$this->schema}.{$this->viewAssuntos}")
-        $tSqlIncra = $this->schema . '.' . $this->viewSqlIncra;     // dbo.prata_sql_incra
-        $tAssunto  = $this->schema . '.prata_assunto';              // dbo.prata_assunto
-        $tInteressado  = $this->schema . '.prata_interessado';      // dbo.prata_interessado
+        $tSqlIncra = $this->prefixoSchema() . $this->viewSqlIncra;              // dbo.prata_sql_incra
+        $tAssunto  = $this->prefixoSchema() . $this->viewAssuntos;              // dbo.prata_assunto
+        $tInteressado  = $this->prefixoSchema() . $this->viewInteressados;      // dbo.prata_interessado
 
         $query = DB::connection($this->connection)
             ->table($tSqlIncra . ' as sqlincra')
@@ -181,9 +194,9 @@ class BusinessIntelligenceService
 
     public function buscarProcessos(array $filtros, bool $retornarQuery = false)
     {
-        $tSqlIncra = $this->schema . '.' . $this->viewSqlIncra;     // dbo.prata_sql_incra
-        $tAssunto  = $this->schema . '.prata_assunto';              // dbo.prata_assunto
-        $tInteressado  = $this->schema . '.prata_interessado';      // dbo.prata_interessado
+        $tSqlIncra = $this->prefixoSchema() . $this->viewSqlIncra;              // dbo.prata_sql_incra
+        $tAssunto  = $this->prefixoSchema() . $this->viewAssuntos;              // dbo.prata_assunto
+        $tInteressado  = $this->prefixoSchema() . $this->viewInteressados;      // dbo.prata_interessado
 
         $query = DB::connection($this->connection)
             ->table($tSqlIncra . ' as sqlincra')
@@ -259,7 +272,7 @@ class BusinessIntelligenceService
 
     public function buscarRaw(string $sqlIncra): ?array
     {
-        $sql = 'SELECT TOP 1 * FROM ' . $this->schema . '.' . $this->viewSqlIncra . ' WHERE sql_incra = ?';
+        $sql = 'SELECT TOP 1 * FROM ' . $this->prefixoSchema() . $this->viewSqlIncra . ' WHERE sql_incra = ?';
         $rows = DB::connection($this->connection)->select($sql, [$sqlIncra]);
 
         if (empty($rows)) {
