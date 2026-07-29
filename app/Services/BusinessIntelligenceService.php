@@ -26,6 +26,22 @@ class BusinessIntelligenceService
         return $this->schema ? $this->schema . '.' : '';
     }
 
+    private function getInteressadosRaw()
+    {
+        // Se estiver rodando no banco de testes (SQLite), usa a sintaxe compatível
+        if ($this->connection === 'sqlite') {
+            return DB::raw("GROUP_CONCAT(interessado.nomeInteressado || ' (' || interessado.atribuicao || ')', '; ') AS interessados");
+        }
+
+        // Caso contrário, usa a sintaxe oficial do SQL Server
+        return DB::raw("
+            STRING_AGG(
+                interessado.nomeInteressado + ' (' + interessado.atribuicao + ')',
+                '; '
+            ) WITHIN GROUP (ORDER BY interessado.atribuicao) AS interessados
+        ");
+    }
+
     public function buscarPorSqlIncra(string $sqlIncra): array
     {
         $tSqlIncra = $this->prefixoSchema() . $this->viewSqlIncra;              // dbo.prata_sql_incra
@@ -51,12 +67,7 @@ class BusinessIntelligenceService
                 'sqlincra.id_prata_sql_incra as id',
                 'sqlincra.sql_incra as sql',
 
-                DB::raw("
-            STRING_AGG(
-                interessado.nomeInteressado + ' (' + interessado.atribuicao + ')',
-                '; '
-            ) WITHIN GROUP (ORDER BY interessado.atribuicao) AS interessados
-        "),
+                $this->getInteressadosRaw(),
 
                 'passunto.id_prata_assunto',
                 'passunto.sistema',
@@ -131,12 +142,7 @@ class BusinessIntelligenceService
                 'sqlincra.id_prata_sql_incra as id',
                 'sqlincra.sql_incra as sql',
 
-                DB::raw("
-            STRING_AGG(
-                interessado.nomeInteressado + ' (' + interessado.atribuicao + ')',
-                '; '
-            ) WITHIN GROUP (ORDER BY interessado.atribuicao) AS interessados
-        "),
+                $this->getInteressadosRaw(),
 
                 'passunto.id_prata_assunto',
                 'passunto.sistema',
@@ -206,12 +212,7 @@ class BusinessIntelligenceService
                 'sqlincra.id_prata_sql_incra as id',
                 'sqlincra.sql_incra as sql',
 
-                DB::raw("
-            STRING_AGG(
-                interessado.nomeInteressado + ' (' + interessado.atribuicao + ')',
-                '; '
-            ) WITHIN GROUP (ORDER BY interessado.atribuicao) AS interessados
-        "),
+                $this->getInteressadosRaw(),
 
                 'passunto.id_prata_assunto',
                 'passunto.sistema',
