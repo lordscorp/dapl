@@ -290,7 +290,7 @@ class BusinessIntelligenceService
 
         return Cache::remember($cacheKey, now()->addHour(), function () {
             $baseQuery = DB::connection($this->connection)
-                ->table("{$this->schema}.{$this->viewAssuntos}");
+                ->table("{$this->prefixoSchema()}{$this->viewAssuntos}");
 
             return [
                 'assuntos' => $baseQuery
