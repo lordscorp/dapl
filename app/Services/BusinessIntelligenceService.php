@@ -13,6 +13,7 @@ class BusinessIntelligenceService
     protected string $viewSqlIncra = 'prata_sql_incra';
     protected string $viewAssuntos = 'prata_assunto';
     protected string $viewInteressados = 'prata_interessado';
+    protected string $viewProcessos = 'prata_processo';
 
     
     public function __construct()
@@ -44,19 +45,35 @@ class BusinessIntelligenceService
 
     public function buscarPorProcesso(string $processoSei)
     {
-        $tProcesso = $this->prefixoSchema() . 'prata_processo';
+        $tProcesso = $this->prefixoSchema() . $this->viewProcessos;     // dbo.prata_processo
+        $tSqlIncra = $this->prefixoSchema() . $this->viewSqlIncra;      // dbo.prata_sql_incra
+        $tAssunto = $this->prefixoSchema() . $this->viewAssuntos;       // dbo.prata_assunto
 
         
         $query = DB::connection($this->connection)
-            ->table($tProcesso)
+            ->table($tProcesso . ' AS proc')
             ->select([
-                'sistema',
-                'processo',
-                'dtAutuacaoProcesso',
-                'situacaoProcesso',
-                'tipoprocesso'
+                'proc.sistema',
+                'proc.processo',
+                'proc.dtAutuacaoProcesso',
+                'proc.situacaoProcesso',
+                'proc.tipoprocesso',
+
+                'assunto.protocolo',
+                'assunto.dtPedidoProtocolo',
+                'assunto.SituacaoAssunto'
                 ])
-                ->where('processo', $processoSei);
+            ->addSelect([
+                'sql_incra' => DB::connection($this->connection)
+                    ->table($tSqlIncra . ' AS sqlincra')
+                    ->select(DB::raw('MAX(sql_incra)'))
+                    ->whereColumn('sqlincra.processo', 'proc.processo') 
+            ])
+            ->leftJoin($tAssunto . ' AS assunto', function ($join) {
+                $join->on('assunto.processo', '=', 'proc.processo')
+                     ->where('assunto.assunto', 'LIKE', 'Alvará de Aprovação de Edificação Nova%');
+            })
+            ->where('proc.processo', $processoSei);
 
                 
         $rows = $query->get();
