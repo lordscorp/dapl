@@ -63,9 +63,9 @@ class BusinessIntelligenceEndpointTest extends TestCase
 
     public function test_endpoint_buscar_por_processo_retorna_situacao_e_sistema_corretos()
     {
-        $this->getJson('/api/bi/buscarPorProcesso')
+        $this->getJson('/api/bi/buscarPorProcesso?processo_sei=0123.2024/0121323-4')
              ->assertStatus(200)
-             ->assertJsonPath('0.situacao', 'Deferido')
+             ->assertJsonPath('0.situacaoProcesso', 'Deferido')
              ->assertJsonPath('0.sistema', 'nome do sistema');
     }
 }

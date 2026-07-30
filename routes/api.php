@@ -25,6 +25,7 @@ Route::post('/consultarSubprefeituras', [Utils::class, 'consultarSubprefeitura']
 Route::get('/bi/buscarsql', [BusinessIntelligence::class, 'buscarSqlIncra']);
 Route::get('/bi/listarFiltros', [BusinessIntelligence::class, 'listarFiltros']);
 Route::post('/bi/buscarProcessos', [BusinessIntelligence::class, 'buscarProcessos']);
+Route::get('/bi/buscarPorProcesso', [BusinessIntelligence::class, 'buscarPorProcesso']);
 
 // OODC
 Route::post('/outorga/calcularOutorga', [Outorga::class, 'calcularOutorga']);
