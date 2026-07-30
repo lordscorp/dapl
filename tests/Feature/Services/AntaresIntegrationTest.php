@@ -31,6 +31,18 @@ class AntaresIntegrationTest extends TestCase
         $this->popularBancoOutorga();
     }
 
+    public function test_deve_retornar_valor_m2_com_dados_de_processo() {
+        $arrayProcesso = [
+            'dtPedidoProtocolo' => '2024-02-02',
+            'sqlIncra' => '055.033.0012-1',
+            'codlog' => '151048'
+        ];
+
+        $resultado = $this->service->consultarValorM2Processo($arrayProcesso);
+        
+        $this->assertEquals($resultado, 3475.20);
+    }
+
     public function test_deve_retornar_array_com_dados_de_processo() {
         $arrayEsperado = [
             'processo' => [
