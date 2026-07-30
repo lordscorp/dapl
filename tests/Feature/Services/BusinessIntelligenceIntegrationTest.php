@@ -54,6 +54,6 @@ class BusinessIntelligenceIntegrationTest extends TestCase
         $this->assertEquals('nome do sistema', $resultado[0]['sistema']);
         $this->assertEquals('2024-02-28', $resultado[0]['dtAutuacaoProcesso']);
         $this->assertEquals('Deferido', $resultado[0]['situacaoProcesso']);
-        $this->assertEquals('tipo do processo', $resultado[0]['tipoProcesso']);
+        $this->assertEquals('tipo do processo', $resultado[0]['tipoprocesso']);
     }
 }

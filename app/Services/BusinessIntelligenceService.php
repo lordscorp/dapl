@@ -42,6 +42,28 @@ class BusinessIntelligenceService
         ");
     }
 
+    public function buscarPorProcesso(string $processoSei)
+    {
+        $tProcesso = $this->prefixoSchema() . 'prata_processo';
+
+        
+        $query = DB::connection($this->connection)
+            ->table($tProcesso)
+            ->select([
+                'sistema',
+                'processo',
+                'dtAutuacaoProcesso',
+                'situacaoProcesso',
+                'tipoprocesso'
+                ])
+                ->where('processo', $processoSei);
+
+                
+        $rows = $query->get();
+        
+        return $rows->map(fn($r) => (array) $r)->all();
+    }
+
     public function buscarPorSqlIncra(string $sqlIncra): array
     {
         $tSqlIncra = $this->prefixoSchema() . $this->viewSqlIncra;              // dbo.prata_sql_incra
