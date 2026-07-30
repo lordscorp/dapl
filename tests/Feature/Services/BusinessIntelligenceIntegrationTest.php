@@ -59,5 +59,6 @@ class BusinessIntelligenceIntegrationTest extends TestCase
         $this->assertEquals('32109-24-SP-ALV', $resultado[0]['protocolo']);
         $this->assertEquals('2024-02-28', $resultado[0]['dtPedidoProtocolo']);
         $this->assertEquals('Deferido', $resultado[0]['SituacaoAssunto']);
+        $this->assertEquals('15104-8', $resultado[0]['codlog']);
     }
 }

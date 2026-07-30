@@ -48,6 +48,13 @@ trait PreparaDadosBi
             $table->string('tipoprocesso')->nullable();
         });
 
+        Schema::create('prata_endereco', function (Blueprint $table) {
+            $table->id('id_prata_endereco');
+            $table->string('processo')->nullable();
+            $table->string('codlog');
+        });
+
+
         // 2. Inserir dados de mock para os testes
         DB::table('prata_assunto')->insert([
             'id_prata_assunto' => 1,
@@ -83,5 +90,12 @@ trait PreparaDadosBi
                 'tipoprocesso' => 'tipo do processo'
             ]
         ]);
+        
+        DB::table('prata_endereco')->insert([
+            'id_prata_endereco' => 44,
+            'processo' => '0123.2024/0121323-4',
+            'codlog' => '15104-8'
+        ]);
+
     }
 }
