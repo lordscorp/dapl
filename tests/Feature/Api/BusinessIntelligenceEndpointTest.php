@@ -43,7 +43,7 @@ class BusinessIntelligenceEndpointTest extends TestCase
     {
         $payload = [
             'dataInicio' => '2023-01-01',
-            'assuntos' => ['Alvará de Aprovação'],
+            'assuntos' => ['Alvará de Aprovação de Edificação Nova'],
             'subprefeituras' => ['Sé']
         ];
 
@@ -57,7 +57,7 @@ class BusinessIntelligenceEndpointTest extends TestCase
     {
         $this->getJson('/api/bi/listarFiltros')
              ->assertStatus(200)
-             ->assertJsonPath('assuntos.0', 'Alvará de Aprovação')
+             ->assertJsonPath('assuntos.0', 'Alvará de Aprovação de Edificação Nova')
              ->assertJsonPath('distritos.0', 'Bela Vista');
     }
 

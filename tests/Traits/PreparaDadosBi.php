@@ -15,6 +15,7 @@ trait PreparaDadosBi
             $table->id('id_prata_sql_incra');
             $table->string('sql_incra');
             $table->unsignedBigInteger('id_prata_assunto');
+            $table->string('processo')->nullable();
         });
 
         Schema::create('prata_assunto', function (Blueprint $table) {
@@ -28,6 +29,7 @@ trait PreparaDadosBi
             $table->string('distrito')->nullable();
             $table->string('origem_subprefeitura')->nullable();
             $table->string('aditivo')->nullable();
+            $table->string('protocolo')->nullable();
         });
 
         Schema::create('prata_interessado', function (Blueprint $table) {
@@ -51,16 +53,18 @@ trait PreparaDadosBi
             'id_prata_assunto' => 1,
             'sistema' => 'Aprovação',
             'processo' => '0123.2024/0121323-4',
-            'assunto' => 'Alvará de Aprovação',
+            'assunto' => 'Alvará de Aprovação de Edificação Nova',
             'SituacaoAssunto' => 'Deferido',
-            'dtPedidoProtocolo' => '2023-05-10',
+            'dtPedidoProtocolo' => '2024-02-28',
             'subprefeitura' => 'Sé',
-            'distrito' => 'Bela Vista'
+            'distrito' => 'Bela Vista',
+            'protocolo' => '32109-24-SP-ALV',
         ]);
 
         DB::table('prata_sql_incra')->insert([
             'id_prata_sql_incra' => 100,
             'sql_incra' => '055.033.0012-1',
+            'processo' => '0123.2024/0121323-4',
             'id_prata_assunto' => 1
         ]);
 
