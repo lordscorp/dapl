@@ -28,7 +28,7 @@ class BusinessIntelligenceIntegrationTest extends TestCase
 
         $this->assertCount(1, $resultado);
         $this->assertEquals('055.033.0012-1', $resultado[0]['sql']);
-        $this->assertEquals('2023-0.001.002-3', $resultado[0]['processo']);
+        $this->assertEquals('0123.2024/0121323-4', $resultado[0]['processo']);
         
         $this->assertStringContainsString('João Silva', $resultado[0]['interessados']);
     }
@@ -44,5 +44,16 @@ class BusinessIntelligenceIntegrationTest extends TestCase
 
         $this->assertCount(1, $resultado);
         $this->assertEquals('Alvará de Aprovação', $resultado[0]->assunto);
+    }
+
+    public function test_deve_buscar_por_processo_pelo_numero() {
+        $resultado = $this->service->buscarPorProcesso('0123.2024/0121323-4');
+
+        $this->assertCount(1, $resultado);
+        $this->assertEquals('0123.2024/0121323-4', $resultado[0]['processo']);
+        $this->assertEquals('nome do sistema', $resultado[0]['sistema']);
+        $this->assertEquals('2024-02-28', $resultado[0]['dtAutuacaoProcesso']);
+        $this->assertEquals('Deferido', $resultado[0]['situacaoProcesso']);
+        $this->assertEquals('tipo do processo', $resultado[0]['tipoProcesso']);
     }
 }

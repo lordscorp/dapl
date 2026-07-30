@@ -37,11 +37,20 @@ trait PreparaDadosBi
             $table->string('atribuicao');
         });
 
+        Schema::create('prata_processo', function (Blueprint $table) {
+            $table->id('id_prata_processo');
+            $table->string('processo');
+            $table->string('sistema');
+            $table->date('dtAutuacaoProcesso');
+            $table->string('situacaoProcesso')->nullable();
+            $table->string('tipoprocesso')->nullable();
+        });
+
         // 2. Inserir dados de mock para os testes
         DB::table('prata_assunto')->insert([
             'id_prata_assunto' => 1,
             'sistema' => 'Aprovação',
-            'processo' => '2023-0.001.002-3',
+            'processo' => '0123.2024/0121323-4',
             'assunto' => 'Alvará de Aprovação',
             'SituacaoAssunto' => 'Deferido',
             'dtPedidoProtocolo' => '2023-05-10',
@@ -58,6 +67,17 @@ trait PreparaDadosBi
         DB::table('prata_interessado')->insert([
             ['id_prata_assunto' => 1, 'nomeInteressado' => 'João Silva', 'atribuicao' => 'Proprietário'],
             ['id_prata_assunto' => 1, 'nomeInteressado' => 'Maria Souza', 'atribuicao' => 'Autora']
+        ]);
+        
+        DB::table('prata_processo')->insert([
+            [
+                'id_prata_processo' => 1,
+                'sistema' => 'nome do sistema',
+                'processo' => '0123.2024/0121323-4',
+                'dtAutuacaoProcesso' => '2024-02-28',
+                'situacaoProcesso' => 'Deferido',
+                'tipoprocesso' => 'tipo do processo'
+            ]
         ]);
     }
 }

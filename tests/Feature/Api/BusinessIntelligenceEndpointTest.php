@@ -28,7 +28,7 @@ class BusinessIntelligenceEndpointTest extends TestCase
         $this->getJson('/api/bi/buscarsql?sql_incra=055.033.0012-1')
              ->assertStatus(200)
              ->assertJsonPath('0.sql', '055.033.0012-1')
-             ->assertJsonPath('0.processo', '2023-0.001.002-3')
+             ->assertJsonPath('0.processo', '0123.2024/0121323-4')
              ->assertJsonPath('0.SituacaoAssunto', 'Deferido');
     }
 
@@ -59,5 +59,13 @@ class BusinessIntelligenceEndpointTest extends TestCase
              ->assertStatus(200)
              ->assertJsonPath('assuntos.0', 'Alvará de Aprovação')
              ->assertJsonPath('distritos.0', 'Bela Vista');
+    }
+
+    public function test_endpoint_buscar_por_processo_retorna_situacao_e_sistema_corretos()
+    {
+        $this->getJson('/api/bi/buscarPorProcesso')
+             ->assertStatus(200)
+             ->assertJsonPath('0.situacao', 'Deferido')
+             ->assertJsonPath('0.sistema', 'nome do sistema');
     }
 }
