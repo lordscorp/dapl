@@ -43,6 +43,14 @@ class AntaresIntegrationTest extends TestCase
         $this->assertEquals($resultado, 3475.20);
     }
 
+    public function test_deve_retornar_codlog_apenas_numeros() {
+        $arrayProcesso = ['codlog' => '123.45-6'];
+
+        $resultado = $this->service->formatarCodlog($arrayProcesso);
+
+        $this->assertEquals('123456', $resultado);
+    }
+
     public function test_deve_retornar_array_com_dados_de_processo() {
         $arrayEsperado = [
             'processo' => [
