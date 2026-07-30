@@ -15,12 +15,7 @@ class AntaresService
     {
         $dadosProcesso = $this->biService->buscarPorProcesso($processoSei)[0];
 
-        $sqlIncra = $dadosProcesso['sqlIncra'];
-
-        $anoProcesso = $this->encontrarAno($dadosProcesso);
-        $sql = $this->outorgaService->formatarSQL($dadosProcesso['sqlIncra']);
-        $codlog = $dadosProcesso['codlog'];
-
+        
         
 
 
@@ -56,5 +51,17 @@ class AntaresService
         $codlog = $processo['codlog'];
 
         return preg_replace('/\D/', '', $codlog);
+    }
+
+    function retornarSetorEQuadra(array $processo): array
+    {
+        $sqlFormatado = $this->outorgaService->formatarSQL($processo['sql_incra']);
+        $partes = explode('.', $sqlFormatado);
+
+        // Extrai setor e quadra
+        $setor = substr($partes[0], 0, 3);
+        $quadra = substr($partes[1], 0, 3);
+
+        return ['setor' => $setor, 'quadra' => $quadra];
     }
 }
