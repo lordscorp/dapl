@@ -34,7 +34,7 @@ class AntaresIntegrationTest extends TestCase
     public function test_deve_retornar_valor_m2_com_dados_de_processo() {
         $arrayProcesso = [
             'dtPedidoProtocolo' => '2024-02-02',
-            'sqlIncra' => '055.033.0012-1',
+            'sql_incra' => '055.033.0012-1',
             'codlog' => '151048'
         ];
 
