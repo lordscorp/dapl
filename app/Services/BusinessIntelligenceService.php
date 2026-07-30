@@ -14,6 +14,7 @@ class BusinessIntelligenceService
     protected string $viewAssuntos = 'prata_assunto';
     protected string $viewInteressados = 'prata_interessado';
     protected string $viewProcessos = 'prata_processo';
+    protected string $viewEnderecos = 'prata_endereco';
 
     
     public function __construct()
@@ -45,9 +46,10 @@ class BusinessIntelligenceService
 
     public function buscarPorProcesso(string $processoSei)
     {
-        $tProcesso = $this->prefixoSchema() . $this->viewProcessos;     // dbo.prata_processo
-        $tSqlIncra = $this->prefixoSchema() . $this->viewSqlIncra;      // dbo.prata_sql_incra
-        $tAssunto = $this->prefixoSchema() . $this->viewAssuntos;       // dbo.prata_assunto
+        $tProcesso = $this->prefixoSchema() . $this->viewProcessos;         // dbo.prata_processo
+        $tSqlIncra = $this->prefixoSchema() . $this->viewSqlIncra;          // dbo.prata_sql_incra
+        $tAssunto = $this->prefixoSchema() . $this->viewAssuntos;           // dbo.prata_assunto
+        $tEndereco = $this->prefixoSchema() . $this->viewEnderecos;         // dbo.prata_endereco
 
         
         $query = DB::connection($this->connection)
@@ -68,6 +70,12 @@ class BusinessIntelligenceService
                     ->table($tSqlIncra . ' AS sqlincra')
                     ->select(DB::raw('MAX(sql_incra)'))
                     ->whereColumn('sqlincra.processo', 'proc.processo') 
+            ])
+            ->addSelect([
+                'codlog' => DB::connection($this->connection)
+                    ->table($tEndereco . ' AS endereco')
+                    ->select(DB::raw('MAX(codlog)'))
+                    ->whereColumn('endereco.processo', 'proc.processo') 
             ])
             ->leftJoin($tAssunto . ' AS assunto', function ($join) {
                 $join->on('assunto.processo', '=', 'proc.processo')
