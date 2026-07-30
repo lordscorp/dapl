@@ -48,7 +48,7 @@ class BusinessIntelligence extends Controller
     }
 
     /**
-     * POST /api/bi/buscarprocessos
+     * POST /api/bi/buscarProcessos
      */
 
     public function buscarProcessos(Request $request)
@@ -83,7 +83,7 @@ class BusinessIntelligence extends Controller
     }
     
     /**
-     * GET /api/bi/listarfiltros
+     * GET /api/bi/listarFiltros
      */
 
     public function listarFiltros()
