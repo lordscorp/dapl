@@ -35,6 +35,22 @@ trait PreparaDadosOutorga
             'codlog' => '200085',
             'vm2' => 2078.16
         ]);
+        
+        Schema::create('oodc_quadro14_vm2_2024', function (Blueprint $table) {
+            $table->string('setor', 3);
+            $table->string('quadra', 3);
+            $table->string('sq', 6)->nullable();
+            $table->string('codlog', 10);
+            $table->decimal('vm2', 10, 2)->nullable();
+        });
+
+        DB::table('oodc_quadro14_vm2_2024')->insert([
+            'setor' => '055',
+            'quadra' => '033',
+            'sq' => '055033',
+            'codlog' => '151048',
+            'vm2' => 3475.20
+        ]);
 
         // 2. Tabelas para consulta de FP
         Schema::create('sq_macroareas', function (Blueprint $table) {
@@ -48,6 +64,13 @@ trait PreparaDadosOutorga
         DB::table('sq_macroareas')->insert([
             'cd_quadra_fiscal' => '097',
             'cd_setor_fiscal' => '055',
+            'tx_macro_divisao_pde' => 'Macroárea de Qualificação da Urbanização',
+            'nm_perimetro_divisao_pde' => ''
+        ]);
+        
+        DB::table('sq_macroareas')->insert([
+            'cd_quadra_fiscal' => '055',
+            'cd_setor_fiscal' => '033',
             'tx_macro_divisao_pde' => 'Macroárea de Qualificação da Urbanização',
             'nm_perimetro_divisao_pde' => ''
         ]);
