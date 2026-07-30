@@ -51,6 +51,16 @@ class AntaresIntegrationTest extends TestCase
         $this->assertEquals('123456', $resultado);
     }
 
+    public function test_deve_retornar_setor_e_quadra_com_sql_incra() {
+        $arrayProcesso = ['sql_incra' => '055.033.0012-1'];
+
+        $arrayEsperado = ['setor' => '055', 'quadra' => '033'];
+
+        $resultado = $this->service->retornarSetorEQuadra($arrayProcesso);
+
+        $this->assertEquals($resultado, $arrayEsperado);
+    }
+
     public function test_deve_retornar_array_com_dados_de_processo() {
         $arrayEsperado = [
             'processo' => [
