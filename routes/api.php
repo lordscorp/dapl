@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Antares;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Ft2\Ft2Processos;
 use App\Http\Controllers\Outorga;
@@ -25,12 +26,18 @@ Route::post('/consultarSubprefeituras', [Utils::class, 'consultarSubprefeitura']
 Route::get('/bi/buscarsql', [BusinessIntelligence::class, 'buscarSqlIncra']);
 Route::get('/bi/listarFiltros', [BusinessIntelligence::class, 'listarFiltros']);
 Route::post('/bi/buscarProcessos', [BusinessIntelligence::class, 'buscarProcessos']);
+Route::get('/bi/buscarPorProcesso', [BusinessIntelligence::class, 'buscarPorProcesso']);
 
 // OODC
 Route::post('/outorga/calcularOutorga', [Outorga::class, 'calcularOutorga']);
 Route::get('/outorga/consultarValorM2', [Outorga::class, 'consultarValorM2']);
 Route::get('/outorga/consultarFatorPlanejamento', [Outorga::class, 'consultarFatorPlanejamento']);
+Route::get('/outorga/consultarFatorSocial', [Outorga::class, 'consultarFatorSocial']);
 Route::get('/outorga/buscarProcessoAD', [Outorga::class, 'buscarProcessoAD']);
 Route::get('/outorga/calcularProcessosAD', [Outorga::class, 'calcularProcessosAD']);
 Route::get('/outorga/buscarProcessoSISACOE', [Outorga::class, 'buscarProcessoSISACOE']);
 Route::get('/outorga/calcularProcessosSISACOE', [Outorga::class, 'calcularProcessosSISACOE']);
+
+//Antares
+Route::get('/antares/procurarProcesso', [Antares::class, 'obterResumoProcesso']);
+Route::post('/antares/calcularOutorga', [Antares::class, 'calcularOutorgaAntares']);

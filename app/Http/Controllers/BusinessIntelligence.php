@@ -48,7 +48,7 @@ class BusinessIntelligence extends Controller
     }
 
     /**
-     * POST /api/bi/buscarprocessos
+     * POST /api/bi/buscarProcessos
      */
 
     public function buscarProcessos(Request $request)
@@ -83,7 +83,7 @@ class BusinessIntelligence extends Controller
     }
     
     /**
-     * GET /api/bi/listarfiltros
+     * GET /api/bi/listarFiltros
      */
 
     public function listarFiltros()
@@ -91,5 +91,33 @@ class BusinessIntelligence extends Controller
         return response()->json(
             $this->biService->listarFiltros()
         );
+    }
+
+    /**
+     * GET /api/bi/buscarPorProcesso
+     */
+
+    public function buscarPorProcesso(Request $request): JsonResponse
+    {
+        $processoSei= $request->query('processo_sei');
+
+        if (!$processoSei || !is_string($processoSei)) {
+            return response()->json(['erro' => 'Parâmetro processo_sei é obrigatório'], 400);
+        }
+
+        try {
+            $this->logService->registrarDaSessao("Busca Por Processo", $processoSei);
+
+            $resultado = $this->biService->buscarPorProcesso($processoSei);
+        } catch (\Throwable $e) {
+            // Evita vazar detalhes de erro
+            return response()->json(['erro' => 'Falha ao consultar a base SQL Server'], 500);
+        }
+
+        if (!$resultado) {
+            return response()->json(['mensagem' => 'Não encontrado'], 404);
+        }
+
+        return response()->json($resultado, 200);
     }
 }

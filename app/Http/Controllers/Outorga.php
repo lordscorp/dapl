@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\DTOs\ParametrosCalculoOutorgaDTO;
 use Illuminate\Http\Request;
 use App\Services\OutorgaService;
 
 class Outorga extends Controller
 {
-    protected $outorgaService;
-
+    protected OutorgaService $outorgaService;
 
     public function __construct(OutorgaService $outorgaService)
     {
@@ -28,12 +28,13 @@ class Outorga extends Controller
 
         // $service = new OutorgaService();
         // $resultado = $service->calcularOutorga(
-        $resultado = $this->outorgaService->calcularOutorga(
-            $validated['at'],
-            $validated['ac'],
+        $resultado = $this->outorgaService->calcularOutorga(new ParametrosCalculoOutorgaDTO(
             $validated['v'],
             $validated['fs'],
-            $validated['fp']
+            $validated['fp'],
+            $validated['at'],
+            $validated['ac']
+        )
         );
 
         return response()->json(['resultado' => $resultado]);
@@ -124,6 +125,19 @@ class Outorga extends Controller
 
         return response()->json([
             'fp' => $fp
+        ]);
+    }
+    
+
+    public function consultarFatorSocial(Request $request)
+    {
+        $uso = $request->input('uso');
+        $area = $request->input('area');
+
+        $fs = $this->outorgaService->consultarFatorSocial($uso, $area);
+
+        return response()->json([
+            'fs' => $fs
         ]);
     }
 
