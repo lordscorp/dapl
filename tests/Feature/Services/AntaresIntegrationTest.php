@@ -7,6 +7,9 @@ use App\Services\LogService;
 use App\Services\AntaresService;
 use App\Services\BusinessIntelligenceService;
 use App\Services\OutorgaService;
+use App\DTOs\ProcessoDTO;
+use App\DTOs\ParametrosCalculoDTO;
+use App\DTOs\OutorgaDTO;
 use Tests\Traits\PreparaDadosBi;
 use Tests\Traits\PreparaDadosOutorga;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -34,7 +37,7 @@ class AntaresIntegrationTest extends TestCase
     public function test_deve_retornar_valor_m2_com_dados_de_processo() {
         $arrayProcesso = [
             'dtPedidoProtocolo' => '2024-02-02',
-            'sql_incra' => '055.033.0012-1',
+            'sql_incra' => '135.241.0012-1',
             'codlog' => '151048'
         ];
 
@@ -52,9 +55,9 @@ class AntaresIntegrationTest extends TestCase
     }
 
     public function test_deve_retornar_setor_e_quadra_com_sql_incra() {
-        $arrayProcesso = ['sql_incra' => '055.033.0012-1'];
+        $arrayProcesso = ['sql_incra' => '135.241.0012-1'];
 
-        $arrayEsperado = ['setor' => '055', 'quadra' => '033'];
+        $arrayEsperado = ['setor' => '135', 'quadra' => '241'];
 
         $resultado = $this->service->retornarSetorEQuadra($arrayProcesso);
 
@@ -62,22 +65,31 @@ class AntaresIntegrationTest extends TestCase
     }
 
     public function test_deve_retornar_array_com_dados_de_processo() {
+        $processoEsperado = new ProcessoDTO(
+            processoSei: '0123.2024/0121323-4',
+            dataAutuacao: '2024-02-28',
+            situacao: 'Em Andamento',
+            sistema: 'Aprovanet',
+            protocolo: '32109-24-SP-ALV',
+            dataProtocolo: '2024-02-28',
+            setor: '135',
+            quadra: '241',
+            codlog: '151048'
+        );
+
+        $parametrosEsperados = new ParametrosCalculoDTO(
+            valorM2: 3475.20,
+            fatorPlanejamento: 0.5,
+            fatorSocial: 1.0
+        );
+
+        $outorgaEsperada = new OutorgaDTO(
+            parametrosDeCalculo: $parametrosEsperados
+        );
+
         $arrayEsperado = [
-            'processo' => [
-                'processoSei' => '0123.2024/0121323-4',
-                'dataAutuacao' => '2024-02-28',
-                'protocolo' => '32109-24-SP-ALV',
-                'dataProtocolo' => '2024-02-28',
-                'sqlIncra' => '055.033.0012-1',
-                'codlog' => '151048'
-            ],
-            'outorga' => [
-                'parametrosDeCalculo' => [
-                    'valorM2' =>  3475.20,
-                    'fatorPlanejamento' => 0.8,
-                    'fatorSocial' => 1
-                ]
-            ]
+            'processo' => $processoEsperado,
+            'outorga'  => $outorgaEsperada
         ];
         
         $resultado = $this->service->processarRequisicaoAntares('0123.2024/0121323-4');

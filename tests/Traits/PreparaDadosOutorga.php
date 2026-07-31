@@ -45,9 +45,9 @@ trait PreparaDadosOutorga
         });
 
         DB::table('oodc_quadro14_vm2_2024')->insert([
-            'setor' => '055',
-            'quadra' => '033',
-            'sq' => '055033',
+            'setor' => '135',
+            'quadra' => '241',
+            'sq' => '135241',
             'codlog' => '151048',
             'vm2' => 3475.20
         ]);
@@ -69,8 +69,8 @@ trait PreparaDadosOutorga
         ]);
         
         DB::table('sq_macroareas')->insert([
-            'cd_quadra_fiscal' => '055',
-            'cd_setor_fiscal' => '033',
+            'cd_quadra_fiscal' => '135',
+            'cd_setor_fiscal' => '241',
             'tx_macro_divisao_pde' => 'Macroárea de Qualificação da Urbanização',
             'nm_perimetro_divisao_pde' => ''
         ]);

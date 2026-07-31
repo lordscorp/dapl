@@ -3,6 +3,9 @@
 namespace App\Services;
 
 use DateTime;
+use App\DTOs\OutorgaDTO;
+use App\DTOs\ParametrosCalculoDTO;
+use App\DTOs\ProcessoDTO;
 
 class AntaresService
 {
@@ -15,18 +18,34 @@ class AntaresService
     {
         $dadosProcesso = $this->biService->buscarPorProcesso($processoSei)[0];
 
+        $setorQuadra = $this->retornarSetorEQuadra(($dadosProcesso));
         
-        
+        $processo = new ProcessoDTO(
+            processoSei: $dadosProcesso['processo'],
+            dataAutuacao: $dadosProcesso['dtAutuacaoProcesso'],
+            situacao: $this->definirSituacao($dadosProcesso),
+            sistema: $dadosProcesso['sistema'],
+            protocolo: $dadosProcesso['protocolo'],
+            dataProtocolo: $dadosProcesso['dtPedidoProtocolo'],
+            setor: $setorQuadra['setor'],
+            quadra: $setorQuadra['quadra'],
+            codlog: $this->formatarCodlog($dadosProcesso)         
+        );
 
+        $parametrosCalculo = new ParametrosCalculoDTO(
+            valorM2: $this->consultarValorM2Processo($dadosProcesso),
+            fatorPlanejamento: $this->outorgaService->consultarFatorPlanejamento($processo->setor, $processo->quadra),
+            fatorSocial: 1.0
+        );
 
-
-        
-        // $valorOutorga = $this->outorgaService->calcularOutorga($dadosBi);
-        
-        return Array();
+        $outorga = new OutorgaDTO (
+            parametrosDeCalculo: $parametrosCalculo
+        );
+                
+        return Array('processo' => $processo, 'outorga' => $outorga);
     }
 
-    public function encontrarAno(array $processo): ?string {
+    function encontrarAno(array $processo): ?string {
         $dataProcesso = !is_null($processo['dtPedidoProtocolo']) ? $processo['dtPedidoProtocolo'] : $processo['dtAutuacaoProcesso'];
 
         $date = DateTime::createFromFormat("Y-m-d", $dataProcesso);
@@ -63,5 +82,10 @@ class AntaresService
         $quadra = substr($partes[1], 0, 3);
 
         return ['setor' => $setor, 'quadra' => $quadra];
+    }
+
+    function definirSituacao(array $processo): ?string
+    {
+        return $processo['situacaoProcesso'] ?? $processo['SituacaoAssunto'] ?? null;
     }
 }

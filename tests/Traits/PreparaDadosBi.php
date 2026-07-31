@@ -70,7 +70,7 @@ trait PreparaDadosBi
 
         DB::table('prata_sql_incra')->insert([
             'id_prata_sql_incra' => 100,
-            'sql_incra' => '055.033.0012-1',
+            'sql_incra' => '135.241.0012-1',
             'processo' => '0123.2024/0121323-4',
             'id_prata_assunto' => 1
         ]);
@@ -83,10 +83,10 @@ trait PreparaDadosBi
         DB::table('prata_processo')->insert([
             [
                 'id_prata_processo' => 1,
-                'sistema' => 'nome do sistema',
+                'sistema' => 'Aprovanet',
                 'processo' => '0123.2024/0121323-4',
                 'dtAutuacaoProcesso' => '2024-02-28',
-                'situacaoProcesso' => 'Deferido',
+                'situacaoProcesso' => 'Em Andamento',
                 'tipoprocesso' => 'tipo do processo'
             ]
         ]);
