@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Antares;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Ft2\Ft2Processos;
 use App\Http\Controllers\Outorga;
@@ -36,3 +37,7 @@ Route::get('/outorga/buscarProcessoAD', [Outorga::class, 'buscarProcessoAD']);
 Route::get('/outorga/calcularProcessosAD', [Outorga::class, 'calcularProcessosAD']);
 Route::get('/outorga/buscarProcessoSISACOE', [Outorga::class, 'buscarProcessoSISACOE']);
 Route::get('/outorga/calcularProcessosSISACOE', [Outorga::class, 'calcularProcessosSISACOE']);
+
+//Antares
+Route::get('/antares/procurarProcesso', [Antares::class, 'obterResumoProcesso']);
+Route::post('/antares/calcularOutorga', [Antares::class, 'calcularOutorgaAntares']);
