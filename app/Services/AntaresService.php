@@ -14,35 +14,42 @@ class AntaresService
         protected OutorgaService $outorgaService
     ) {}
 
-    public function processarRequisicaoAntares(string $processoSei): array
+    public function obterResumoProcesso(string $processoSei): array
     {
         $dadosProcesso = $this->biService->buscarPorProcesso($processoSei)[0];
 
-        $setorQuadra = $this->retornarSetorEQuadra(($dadosProcesso));
+        $processoDTO = ProcessoDTO::fromDatabaseArray(
+            dadosProcesso: $dadosProcesso,
+            setorQuadra: $this->retornarSetorEQuadra($dadosProcesso),
+            situacaoTratada: $this->definirSituacao($dadosProcesso),
+            codlogTratado: $this->formatarCodlog($dadosProcesso)
+        );
+
+        $parametros = $this->montarParametrosBase($dadosProcesso);
+
+        $outorgaDTO = new OutorgaDTO(parametrosDeCalculo: $parametros);
+
+        return [
+            'outorga' => $outorgaDTO, 
+            'processo' => $processoDTO
+        ];
+    }
+
+    private function montarParametrosBase(
+        array $dadosProcesso, 
+        ?float $areaTerreno = null, 
+        ?float $areaComputavel = null
+    ): ParametrosCalculoDTO {
         
-        $processo = new ProcessoDTO(
-            processoSei: $dadosProcesso['processo'],
-            dataAutuacao: $dadosProcesso['dtAutuacaoProcesso'],
-            situacao: $this->definirSituacao($dadosProcesso),
-            sistema: $dadosProcesso['sistema'],
-            protocolo: $dadosProcesso['protocolo'],
-            dataProtocolo: $dadosProcesso['dtPedidoProtocolo'],
-            setor: $setorQuadra['setor'],
-            quadra: $setorQuadra['quadra'],
-            codlog: $this->formatarCodlog($dadosProcesso)         
-        );
+        $setorQuadra = $this->retornarSetorEQuadra($dadosProcesso);
 
-        $parametrosCalculo = new ParametrosCalculoDTO(
+        return new ParametrosCalculoDTO(
             valorM2: $this->consultarValorM2Processo($dadosProcesso),
-            fatorPlanejamento: $this->outorgaService->consultarFatorPlanejamento($processo->setor, $processo->quadra),
-            fatorSocial: 1.0
+            fatorPlanejamento: $this->outorgaService->consultarFatorPlanejamento($setorQuadra['setor'], $setorQuadra['quadra']),
+            fatorSocial: 1.0,
+            areaTerreno: $areaTerreno,
+            areaComputavel: $areaComputavel
         );
-
-        $outorga = new OutorgaDTO (
-            parametrosDeCalculo: $parametrosCalculo
-        );
-                
-        return Array('processo' => $processo, 'outorga' => $outorga);
     }
 
     function encontrarAno(array $processo): ?string {
