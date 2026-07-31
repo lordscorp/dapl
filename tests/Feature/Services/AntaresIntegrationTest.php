@@ -8,7 +8,7 @@ use App\Services\AntaresService;
 use App\Services\BusinessIntelligenceService;
 use App\Services\OutorgaService;
 use App\DTOs\ProcessoDTO;
-use App\DTOs\ParametrosCalculoDTO;
+use App\DTOs\ParametrosCalculoOutorgaDTO;
 use App\DTOs\OutorgaDTO;
 use Tests\Traits\PreparaDadosBi;
 use Tests\Traits\PreparaDadosOutorga;
@@ -77,7 +77,7 @@ class AntaresIntegrationTest extends TestCase
             codlog: '151048'
         );
 
-        $parametrosEsperados = new ParametrosCalculoDTO(
+        $parametrosEsperados = new ParametrosCalculoOutorgaDTO(
             valorM2: 3475.20,
             fatorPlanejamento: 0.5,
             fatorSocial: 1.0
@@ -92,27 +92,41 @@ class AntaresIntegrationTest extends TestCase
             'outorga'  => $outorgaEsperada
         ];
         
-        $resultado = $this->service->processarRequisicaoAntares('0123.2024/0121323-4');
+        $resultado = $this->service->obterResumoProcesso('0123.2024/0121323-4');
 
         $this->assertEquals($arrayEsperado, $resultado);
     }
 
-    public function test_deve_retornar_calculo_da_outorga_com_parametros() {
+    public function test_deve_retornar_calculo_da_outorga_com_parametros() 
+    {
+        // 1. ARRANGE (Preparamos o gabarito esperado instanciando os DTOs)
+        $parametrosEsperados = new ParametrosCalculoOutorgaDTO( // Ajuste o nome da classe se usou ParametrosCalculoOutorgaDTO
+            valorM2: 3475.20,
+            fatorPlanejamento: 0.5, // Certifique-se de que o mock do banco no setUp() devolve 0.5 para esse Setor/Quadra
+            fatorSocial: 1.0,
+            areaTerreno: 2500.0,
+            areaComputavel: 7000.0
+        );
+
+        $outorgaEsperada = new OutorgaDTO(
+            parametrosDeCalculo: $parametrosEsperados,
+            valorOutorga: 2792571.43 // O valor exato que a matemática deve resultar
+        );
+
+        // O array esperado é estruturado exatamente como o retorno do AntaresService
         $arrayEsperado = [
-            'outorga' => [
-                'parametrosDeCalculo' => [
-                    'valorM2' =>  3475.20,
-                    'fatorPlanejamento' => 0.8,
-                    'fatorSocial' => 1,
-                    'areaTerreno' => 2500.00,
-                    'areaComputavel' => 7000.00
-                ],
-                'valorOutorga' => 4468114.29
-            ]
+            'outorga' => $outorgaEsperada
         ];
 
-        $resultado = $this->service->calcularOutorgaAntares(2500, 7000, 3475.20, 1, 0.8);
+        // 2. ACT (Agimos chamando o Service com os dados simulados do POST)
+        // Passamos a string do processo e as duas áreas (Terreno e Computável)
+        $resultado = $this->service->calcularOutorgaAntares(
+            '0123.2024/0121323-4', 
+            2500.0, 
+            7000.0
+        );
 
+        // 3. ASSERT (Verificamos se o que o Service gerou é idêntico ao nosso gabarito)
         $this->assertEquals($arrayEsperado, $resultado);
     }
 }

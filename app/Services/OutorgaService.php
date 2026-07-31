@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\DTOs\ParametrosCalculoOutorgaDTO;
 use Exception;
 use Illuminate\Support\Facades\DB;
 
@@ -18,28 +19,21 @@ class OutorgaService
     /**
      * OODC - Outorga Onerosa do Direito de Construir
      * - C = Contrapartida financeira por m² de potencial construtivo adicional.
-     * @param float $at -   At - área de terreno em m²;
-     * @param float $ac -   Ac - área construída computável total pretendida no empreendimento em m²;
-     * @param float $v -   V - valor do m² do terreno constante do Cadastro de Valor de Terreno para fins de Outorga Onerosa, conforme Quadro 14 anexo;
-     * @param float $fs -   Fs - fator de interesse social, entre 0 (zero) e 1 (um), conforme Quadro 5 anexo;
-     * @param float $fp -   Fp - fator de planejamento entre 0 (zero) e 1,3 (um e três décimos), conforme Quadro 6 anexo;
+     * @param ParametrosCalculoOutorgaDTO $parametros DTO contendo os parâmetros do cálculo
+     * @return float
      */
-    public function calcularOutorga(float $at, float $ac, float $v, float $fs, float $fp): float
+    public function calcularOutorga(ParametrosCalculoOutorgaDTO $parametros): float
     {
-
-
-        if ($ac <= 0 || $at <= 0) {
-            throw new \InvalidArgumentException('Áreas devem ser maiores que zero.');
+        $p = $parametros;
+        $p->validarParaCalculo();
+        
+        if ($p->areaComputavel < $p->areaTerreno) {
+           return 0;
         }
 
-        if ($ac < $at) {
-            // throw new \InvalidArgumentException("Area computavel menor que area total gera OODC invalida. ac, at $ac , $at");
-            return 0;
-        }
+        $c = ($p->areaTerreno / $p->areaComputavel) * $p->valorM2 * $p->fatorSocial * $p->fatorPlanejamento;
 
-        $c = ($at / $ac) * $v * $fs * $fp;
-
-        $total = $c * ($ac - $at);
+        $total = $c * ($p->areaComputavel - $p->areaTerreno);
 
         return round($total, 2);
     }
@@ -93,7 +87,9 @@ class OutorgaService
 
         $anoTabela = 0;
 
-        if ($ano >= 2025) {
+        if ($ano === 2026) {
+            $anoTabela = 2026;
+        } elseif ($ano === 2025) {
             $anoTabela = 2025;
         } elseif ($ano === 2024) {
             $anoTabela = 2024;
@@ -421,7 +417,9 @@ class OutorgaService
 
             // Chama calcularOutorga se os campos existirem
             if ($at && $ac && $v && $fp) {
-                $valorOutorga = $this->calcularOutorga((float)$at, (float)$ac, (float)$v, (float)$fs, (float)$fp);
+                $valorOutorga = $this->calcularOutorga(
+                    new ParametrosCalculoOutorgaDTO((float)$v, (float)$fs, (float)$fp, (float)$at, (float)$ac)
+                );
                 $resultadoArray['valor_outorga'] = $valorOutorga;
             } else {
                 $resultadoArray['valor_outorga'] = null;
@@ -480,7 +478,9 @@ class OutorgaService
 
             // Chama calcularOutorga se os campos existirem
             if ($at && $ac && $v && $fp) {
-                $valorOutorga = $this->calcularOutorga((float)$at, (float)$ac, (float)$v, (float)$fs, (float)$fp);
+                $valorOutorga = $this->calcularOutorga(
+                    new ParametrosCalculoOutorgaDTO((float)$v, (float)$fs, (float)$fp, (float)$at, (float)$ac)
+                );
                 $resultadoArray['valor_outorga'] = $valorOutorga;
             } else {
                 $resultadoArray['valor_outorga'] = null;
@@ -555,12 +555,9 @@ class OutorgaService
                     $valorOutorga = null;
                     if ($at !== null && $ac !== null && $valorM2 !== null && $fp !== null) {
                         $valorOutorga = $this->calcularOutorga(
-                            (float) $at,
-                            (float) $ac,
-                            (float) $valorM2,
-                            (float) $fs,
-                            (float) $fp
+                            new ParametrosCalculoOutorgaDTO((float)$valorM2, (float)$fs, (float)$fp, (float)$at, (float)$ac)
                         );
+
 
                         // Atualiza diretamente a tabela com o valor calculado
                         $updated = DB::table('empreendimentos')
@@ -680,11 +677,7 @@ class OutorgaService
                     $valorOutorga = null;
                     if ($at !== null && $ac !== null && $valorM2 !== null && $fp !== null) {
                         $valorOutorga = $this->calcularOutorga(
-                            (float) $at,
-                            (float) $ac,
-                            (float) $valorM2,
-                            (float) $fs,
-                            (float) $fp
+                            new ParametrosCalculoOutorgaDTO((float)$valorM2, (float)$fs, (float)$fp, (float)$at, (float)$ac)
                         );
 
                         // Atualiza diretamente a tabela com o valor calculado
@@ -784,7 +777,9 @@ class OutorgaService
 
             // Calcula valor_outorga
             if ($at && $ac && $v && $fp) {
-                $valorOutorga = $this->calcularOutorga((float)$at, (float)$ac, (float)$v, (float)$fs, (float)$fp);
+                $valorOutorga = $this->calcularOutorga(
+                    new ParametrosCalculoOutorgaDTO((float)$v, (float)$fs, (float)$fp, (float)$at, (float)$ac)
+                );
                 $resultadoArray['valor_outorga'] = $valorOutorga;
             } else {
                 $resultadoArray['valor_outorga'] = null;

@@ -5,7 +5,7 @@ namespace App\DTOs;
 readonly class OutorgaDTO
 {
     public function __construct(
-        public ParametrosCalculoDTO $parametrosDeCalculo,
+        public ParametrosCalculoOutorgaDTO $parametrosDeCalculo,
         public ?float $valorOutorga = null
     ) {}
 }

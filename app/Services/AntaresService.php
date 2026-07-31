@@ -4,7 +4,7 @@ namespace App\Services;
 
 use DateTime;
 use App\DTOs\OutorgaDTO;
-use App\DTOs\ParametrosCalculoDTO;
+use App\DTOs\ParametrosCalculoOutorgaDTO;
 use App\DTOs\ProcessoDTO;
 
 class AntaresService
@@ -13,6 +13,8 @@ class AntaresService
         protected BusinessIntelligenceService $biService,
         protected OutorgaService $outorgaService
     ) {}
+
+
 
     public function obterResumoProcesso(string $processoSei): array
     {
@@ -35,15 +37,32 @@ class AntaresService
         ];
     }
 
+    public function calcularOutorgaAntares(string $processoSei, float $areaTerreno, float $areaComputavel) {
+        $dadosProcesso = $this->biService->buscarPorProcesso($processoSei)[0];
+
+        $parametros = $this->montarParametrosBase($dadosProcesso, $areaTerreno, $areaComputavel);
+
+        $valorFinanceiro = $this->outorgaService->calcularOutorga($parametros);
+
+        $outorgaDTO = new OutorgaDTO(
+            parametrosDeCalculo: $parametros,
+            valorOutorga: $valorFinanceiro // Agora possui o valor final!
+        );
+
+        return [
+            'outorga' => $outorgaDTO
+        ];
+    }
+
     private function montarParametrosBase(
         array $dadosProcesso, 
         ?float $areaTerreno = null, 
         ?float $areaComputavel = null
-    ): ParametrosCalculoDTO {
+    ): ParametrosCalculoOutorgaDTO {
         
         $setorQuadra = $this->retornarSetorEQuadra($dadosProcesso);
 
-        return new ParametrosCalculoDTO(
+        return new ParametrosCalculoOutorgaDTO(
             valorM2: $this->consultarValorM2Processo($dadosProcesso),
             fatorPlanejamento: $this->outorgaService->consultarFatorPlanejamento($setorQuadra['setor'], $setorQuadra['quadra']),
             fatorSocial: 1.0,

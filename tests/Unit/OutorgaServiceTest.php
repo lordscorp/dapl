@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\DTOs\ParametrosCalculoOutorgaDTO;
 use App\Services\LogService;
 use PHPUnit\Framework\TestCase;
 use App\Services\OutorgaService;
@@ -26,7 +27,9 @@ class OutorgaServiceTest extends TestCase
 
         $this->assertEquals(
             $valorEsperado, 
-            $this->service->calcularOutorga(1000, 2000, 1252, 0.4, 0.3)
+            $this->service->calcularOutorga(
+                new ParametrosCalculoOutorgaDTO(1252, 0.4, 0.3, 1000, 2000)
+            )
         );
     }
 
@@ -42,7 +45,9 @@ class OutorgaServiceTest extends TestCase
         
         $this->assertEquals(
             $valorEsperado, 
-            $this->service->calcularOutorga(380, 657.49, $valorMetroQuadrado, $fatorSocial, $fatorPlanejamento)
+            $this->service->calcularOutorga(
+                new ParametrosCalculoOutorgaDTO($valorMetroQuadrado, $fatorSocial, $fatorPlanejamento, 380, 657.49)
+            )
         );
     }
 }
