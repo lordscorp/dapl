@@ -22,11 +22,15 @@ class ChecarRF
         }
 
         // $rf = session('IDUsuario');
-        $rf = $_SESSION['IDUsuario'];
+        try {
+            $rf = $_SESSION['IDUsuario'];
+        } catch (\Throwable $th) {
+            return redirect('/login.php');
+        }
 
         // Se não estiver logado, pode ver apenas tutorial
         if (!$rf) {
-            return redirect('/tutorial');
+            return redirect('/login');
         }
 
         $apenasBI = [
