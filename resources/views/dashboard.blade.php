@@ -25,7 +25,68 @@
         </div>
         <div class="card w-75 mx-auto mt-4">
             @include('partials.header', ['active' => 'dashboard'])
-            <div class="card-body" v-show="isCarregando">
+            <!-- TESTE -->
+        <div class="card w-75 mx-auto my-4">
+            <div class="card-header">
+                <!-- Pesquisar SQLs impactados pela mudança de zoneamento 18.177 -->
+                 Consulta de divergências de zoneamento – Leis nº 18.081/2024 e nº 18.177/2024
+            </div>
+
+            <div class="card-body">
+                <div class="input-group mb-3">
+                    <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Informe o SQL (Setor/Quadra/Lote)"
+                        v-model="sqlPesquisa"
+                        @keyup.enter="pesquisarImpactoZoneamento">
+
+                    <button
+                        class="btn btn-primary"
+                        @click="pesquisarImpactoZoneamento"
+                        :disabled="isPesquisandoImpacto">
+                        Pesquisar
+                    </button>
+                </div>
+
+                <div v-if="isPesquisandoImpacto" class="text-center my-3">
+                    <div class="spinner-border text-primary"></div>
+                </div>
+
+                <div v-if="impactoZoneamento" class="table-responsive">
+                    <table class="table table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th
+                                    v-for="(valor, chave) in impactoZoneamento[0]"
+                                    :key="chave">
+                                    @{{ chave }}
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr v-for="(registro, index) in impactoZoneamento" :key="index">
+                                <td
+                                    v-for="(valor, chave) in registro"
+                                    :key="chave">
+                                    @{{ valor }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div
+                    v-if="pesquisaRealizada && !impactoZoneamento"
+                    class="alert alert-warning">
+                    Nenhum registro encontrado.
+                </div>
+            </div>
+        </div>
+
+        <!-- FIM TESTE -->
+            <!-- <div class="card-body" v-show="isCarregando">
                 <h2 class="text-center">@{{msgStatus}}</h2>
                 <div class="d-flex justify-content-center align-items-center"
                     v-if="msgStatus = 'Carregando...'"
@@ -101,7 +162,7 @@
                     </div>
                 </div>
                 <button class="btn btn-warning" v-show="false" @click="carregarDadosDashboard(true)">Exemplo de exibição (dados fictícios)</button>
-            </div>
+            </div> -->
         </div>
     </div>
 </body>
@@ -118,6 +179,10 @@
         data() {
             return {
                 isCarregando: false,
+                isPesquisandoImpacto: false,
+                pesquisaRealizada: false,
+                sqlPesquisa: '',
+                impactoZoneamento: null,
                 msgStatus: "Carregando...",
                 totalHisHmp: 0,
                 totalValidando: 0,
@@ -131,7 +196,7 @@
             async carregarDadosDashboard(mock = false) {
                 try {
                     let urlDadosDashboard = 'api/dadosDashboard';
-                    
+
                     this.isCarregando = true;
                     const response = await fetch(mock ? urlDadosDashboardMock : urlDadosDashboard);
                     if (!response.ok) throw new Error('Erro ao carregar dados');
@@ -156,10 +221,45 @@
             },
             txtLargura(numero) {
                 return `width: ${numero}%;`
+            },
+            async pesquisarImpactoZoneamento() {
+                try {
+                    if (!this.sqlPesquisa) {
+                        alert('Informe um SQL.');
+                        return;
+                    }
+
+                    this.pesquisandoImpacto = true;
+                    this.pesquisaRealizada = false;
+                    this.impactoZoneamento = null;
+
+                    const response = await fetch(
+                        `api/impacto-zoneamento-rev18177?sql=${encodeURIComponent(this.sqlPesquisa)}`
+                    );
+
+                    if (response.status === 404) {
+                        this.pesquisaRealizada = true;
+                        return;
+                    }
+
+                    if (!response.ok) {
+                        throw new Error('Falha ao consultar SQL');
+                    }
+
+                    const data = await response.json();
+
+                    this.impactoZoneamento = data.data;
+                    this.pesquisaRealizada = true;
+                } catch (error) {
+                    console.error(error);
+                    alert('Erro ao consultar impacto de zoneamento.');
+                } finally {
+                    this.pesquisandoImpacto = false;
+                }
             }
         },
         mounted() {
-            this.carregarDadosDashboard();
+            // this.carregarDadosDashboard();
         },
         computed: {
             percentualConclusaoHisHmp() {

@@ -6,6 +6,9 @@ use App\Http\Controllers\Ft2\Ft2Processos;
 use App\Http\Controllers\Outorga;
 use App\Http\Controllers\BusinessIntelligence;
 use App\Http\Controllers\Utils;
+use App\Http\Controllers\ImpactoZoneamento18177;
+
+Route::get('/impacto-zoneamento-rev18177', [ImpactoZoneamento18177::class, 'consultar']);
 
 Route::get('/ft2/processoAValidar', [Ft2Processos::class, 'processoAValidar']);
 Route::get('/ft2/adicionarProcessoAListaNegra', [Ft2Processos::class, 'adicionarProcessoAListaNegra']);
