@@ -16,7 +16,7 @@ class BusinessIntelligenceService
     protected string $viewProcessos = 'prata_processo';
     protected string $viewEnderecos = 'prata_endereco';
 
-    
+
     public function __construct()
     {
         $this->connection = env('SQLSRV_CONNECTION', 'sqlsrv');
@@ -51,7 +51,7 @@ class BusinessIntelligenceService
         $tAssunto = $this->prefixoSchema() . $this->viewAssuntos;           // dbo.prata_assunto
         $tEndereco = $this->prefixoSchema() . $this->viewEnderecos;         // dbo.prata_endereco
 
-        
+
         $query = DB::connection($this->connection)
             ->table($tProcesso . ' AS proc')
             ->select([
@@ -64,28 +64,28 @@ class BusinessIntelligenceService
                 'assunto.protocolo',
                 'assunto.dtPedidoProtocolo',
                 'assunto.SituacaoAssunto'
-                ])
+            ])
             ->addSelect([
                 'sql_incra' => DB::connection($this->connection)
                     ->table($tSqlIncra . ' AS sqlincra')
                     ->select(DB::raw('MAX(sql_incra)'))
-                    ->whereColumn('sqlincra.processo', 'proc.processo') 
+                    ->whereColumn('sqlincra.processo', 'proc.processo')
             ])
             ->addSelect([
                 'codlog' => DB::connection($this->connection)
                     ->table($tEndereco . ' AS endereco')
                     ->select(DB::raw('MAX(codlog)'))
-                    ->whereColumn('endereco.processo', 'proc.processo') 
+                    ->whereColumn('endereco.processo', 'proc.processo')
             ])
             ->leftJoin($tAssunto . ' AS assunto', function ($join) {
                 $join->on('assunto.processo', '=', 'proc.processo')
-                     ->where('assunto.assunto', 'LIKE', 'Alvará de Aprovação de Edificação Nova%');
+                    ->where('assunto.assunto', 'LIKE', 'Alvará de Aprovação de Edificação Nova%');
             })
             ->where('proc.processo', $processoSei);
 
-                
+
         $rows = $query->get();
-        
+
         return $rows->map(fn($r) => (array) $r)->all();
     }
 
@@ -247,6 +247,11 @@ class BusinessIntelligenceService
 
     public function buscarProcessos(array $filtros, bool $retornarQuery = false)
     {
+        // return [
+        //     'debug' => true,
+        //     'filtros' => $filtros,
+        // ];
+
         $tSqlIncra = $this->prefixoSchema() . $this->viewSqlIncra;              // dbo.prata_sql_incra
         $tAssunto  = $this->prefixoSchema() . $this->viewAssuntos;              // dbo.prata_assunto
         $tInteressado  = $this->prefixoSchema() . $this->viewInteressados;      // dbo.prata_interessado
@@ -259,7 +264,8 @@ class BusinessIntelligenceService
                 'sqlincra.id_prata_sql_incra as id',
                 'sqlincra.sql_incra as sql',
 
-                $this->getInteressadosRaw(),
+                // $this->getInteressadosRaw(),
+                DB::raw('MAX(interessado.nomeInteressado) as interessados'),
 
                 'passunto.id_prata_assunto',
                 'passunto.sistema',
@@ -306,7 +312,14 @@ class BusinessIntelligenceService
             $query->whereIn('passunto.subprefeitura', $filtros['subprefeituras']);
         }
 
-        // return $retornarQuery ? $query : $query->get();
+        if (!empty($filtros['interessado'])) {
+            $query->where(
+                'interessado.nomeInteressado',
+                'like',
+                '%' . $filtros['interessado'] . '%'
+            );
+        }
+
         if ($retornarQuery) {
             return DB::connection($this->connection)
                 ->query()

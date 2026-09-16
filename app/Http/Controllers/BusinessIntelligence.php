@@ -53,7 +53,7 @@ class BusinessIntelligence extends Controller
 
     public function buscarProcessos(Request $request)
     {
-        set_time_limit(10);
+        set_time_limit(30);
 
         $dados = $request->validate([
             'dataInicio'        => 'required|date',
@@ -62,6 +62,7 @@ class BusinessIntelligence extends Controller
             'situacoes'         => 'nullable|array',
             'distritos'         => 'nullable|array',
             'subprefeituras'    => 'nullable|array',
+            'interessado'       => 'nullable|string',
             'gerarXlsx'         => 'nullable|boolean',
         ]);
 

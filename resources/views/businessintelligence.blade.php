@@ -34,10 +34,10 @@
                 <div class="row">
                     <div class="col">
                         <label class="form-label" title="Setor, Quadra, Lote">SQL</label>
-                        <input type="text" class="form-control" v-model="sqlBusca">
+                        <input type="text" class="form-control" v-model="sqlBusca" @keyup.enter="buscarSql()">
                     </div>
                     <div class="col">
-                        <button class="btn btn-info btn-lg mt-3" @click="buscarSql">Buscar</button>
+                        <button class="btn btn-info btn-lg mt-3" :disabled="isCarregando" @click="buscarSql">Buscar</button>
                     </div>
                 </div>
                 <!-- Busca avançada -->
@@ -48,21 +48,28 @@
 
                     <div class="card-body">
                         <div class="row my-2">
-                            <!-- Assuntos -->
-                            <!-- <div class="col-md-3 mb-3">
-                                <label for="assuntos">Assuntos</label>
-                                <select
-                                    id="assuntos"
+                            <div class="col-md-6">
+                                <label for="interessado">Interessado / Proprietário</label>
+                                <input
+                                    type="text"
+                                    id="interessado"
                                     class="form-control"
-                                    v-model="assuntos"
-                                    multiple
-                                    size="5">
-                                    <option v-for="assunto in listaAssuntos" :key="assunto" :value="assunto">
-                                        @{{ assunto }}
-                                    </option>
-                                </select>
-                                ASSUNTOS SELECIONADOS: @{{assuntos}}
-                            </div> -->
+                                    v-model="interessado"
+                                    @keyup.enter="buscarProcessos()"
+                                    placeholder="Digite o nome de um interessado ou proprietário">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="cnpj">CNPJ</label>
+                                <input
+                                    type="text"
+                                    id="cnpj"
+                                    class="form-control"
+                                    v-model="cnpj"
+                                    @keyup.enter="buscarProcessos()"
+                                    placeholder="Digite CNPJ">
+                            </div>
+                        </div>
+                        <div class="row my-2">
                             <div class="col-md-12">
                                 <label for="assuntos">Assuntos</label>
                                 <multiselect
@@ -77,20 +84,6 @@
                                     :show-labels="true"
                                     :no-result="'Nenhum resultado'" />
                             </div>
-
-                            <!-- <multiselect
-                                v-model="testes"
-                                :options="listaTestes"
-                                :multiple="true"
-                                :searchable="true"
-                                :close-on-select="false"
-                                placeholder="Selecione os testes"
-                                :select-label="'Aperte ENTER para selecionar'"
-                                :deselect-label="'Aperte ENTER para remover'"
-                                track-by="language"
-                                :show-labels="false"
-                                label="name" /> -->
-
                         </div>
 
                         <div class="row my-2">
@@ -169,20 +162,13 @@
                                 <button
                                     class="btn btn-info w-100"
                                     @click="buscarProcessos()"
-                                    :disabled="!dataInicio">
+                                    :disabled="!dataInicio || isCarregando">
                                     Buscar
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- <div class="row">
-                    <div class="col">
-                        <label class="form-label" title="Data inicial">De</label>
-                        <input type="date" name="dataInicio" id="data-inicio" min="1990-01-01">
-                    </div>
-                </div> -->
 
                 <div class="row my-4" v-show="isCarregando">
                     <div class="col text-center">Carregando...</div>
@@ -217,6 +203,7 @@
                                             <th>Distrito</th>
                                             <th>Subprefeitura</th>
                                             <th>Interessados</th>
+                                            <th>CNPJ</th>
                                         </tr>
                                         <tr v-for="processo in processosLocalizados">
                                             <td>@{{processo.processo}}</td>
@@ -228,6 +215,7 @@
                                             <td>@{{processo.distrito}}</td>
                                             <td>@{{processo.subprefeitura}}</td>
                                             <td>@{{processo.interessados}}</td>
+                                            <td>@{{processo.cnpj}}</td>
                                         </tr>
                                     </table>
                                 </div>
@@ -245,10 +233,6 @@
 
 <script src="https://unpkg.com/vue-multiselect"></script>
 <link rel="stylesheet" href="https://unpkg.com/vue-multiselect/dist/vue-multiselect.min.css">
-<!-- <script setup>
-    import Multiselect from 'vue-multiselect'
-    import {ref} from 'vue'
-</script> -->
 <script src="https://unpkg.com/vue-multiselect@3.0.0-beta.2/dist/vue-multiselect.umd.js"></script>
 
 <script>
@@ -257,10 +241,6 @@
         reactive,
         ref
     } = Vue
-
-    // import Multiselect from 'vue-multiselect'
-    // import 'vue-multiselect/dist/vue-multiselect.css'
-
 
     createApp({
         components: {
@@ -281,6 +261,8 @@
                 situacoes: [],
                 distritos: [],
                 subprefeituras: [],
+                interessado: "",
+                cnpj: "",
 
                 listaTestes: [{
                         name: 'Vue.js',
@@ -301,6 +283,11 @@
         },
         methods: {
             async buscarProcessos() {
+                if (this.isCarregando) {
+                    window.alert("Busca em andamento. Aguarde.");
+                    return;
+                }
+
                 this.processosLocalizados = [];
                 try {
                     const urlBuscarProcessos = 'api/bi/buscarProcessos';
@@ -312,6 +299,8 @@
                         situacoes: this.situacoes,
                         distritos: this.distritos,
                         subprefeituras: this.subprefeituras,
+                        interessado: this.interessado,
+                        cnpj: this.cnpj,
                         gerarXlsx: false
                     };
 
@@ -353,6 +342,12 @@
                         window.alert("Digite um SQL válido");
                         return;
                     }
+
+                    if (this.isCarregando) {
+                        window.alert("Busca em andamento. Aguarde.");
+                        return;
+                    }
+
                     let urlBuscarSql = 'api/bi/buscarsql';
                     urlBuscarSql += "?sql_incra=" + this.sqlBusca;
 
@@ -411,6 +406,8 @@
                     situacoes: this.situacoes,
                     distritos: this.distritos,
                     subprefeituras: this.subprefeituras,
+                    interessado: this.interessado,
+                    cnpj: this.cnpj,
                     gerarXlsx: true,
                 };
 
@@ -436,7 +433,7 @@
 
                     })
 
-                
+
             },
             exportarXlsx1() {
                 const payload = {
