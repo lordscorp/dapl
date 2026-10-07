@@ -58,7 +58,7 @@
                                     @keyup.enter="buscarProcessos()"
                                     placeholder="Digite o nome de um interessado ou proprietário">
                             </div>
-                            <div class="col-md-6">
+                            <!-- <div class="col-md-6">
                                 <label for="cnpj">CNPJ</label>
                                 <input
                                     type="text"
@@ -67,7 +67,7 @@
                                     v-model="cnpj"
                                     @keyup.enter="buscarProcessos()"
                                     placeholder="Digite CNPJ">
-                            </div>
+                            </div> -->
                         </div>
                         <div class="row my-2">
                             <div class="col-md-12">
@@ -300,7 +300,6 @@
                         distritos: this.distritos,
                         subprefeituras: this.subprefeituras,
                         interessado: this.interessado,
-                        cnpj: this.cnpj,
                         gerarXlsx: false
                     };
 
@@ -407,7 +406,6 @@
                     distritos: this.distritos,
                     subprefeituras: this.subprefeituras,
                     interessado: this.interessado,
-                    cnpj: this.cnpj,
                     gerarXlsx: true,
                 };
 

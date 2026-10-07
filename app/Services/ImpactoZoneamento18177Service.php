@@ -26,8 +26,31 @@ class ImpactoZoneamento18177Service
         // Considera apenas os 10 primeiros caracteres
         $sqlTruncado = substr($sqlSanitizado, 0, 10);
 
-        return DB::table('impacto_zoneamento_rev18177')
+        return DB::table('impacto_zoneamento_rev18177_v1')
             ->where('sql_truncado', 'like', $sqlTruncado . '%')
+            ->get();
+    }
+
+    /**
+     * Consulta impacto de zoneamento por Setor/Quadra.
+     *
+     * Exemplo:
+     * 123456
+     * 123.456
+     *
+     * @param string $sq
+     * @return \Illuminate\Support\Collection
+     */
+    public function buscarPorSQ(string $sq)
+    {
+        // Remove espaços, pontos e traços
+        $sqSanitizado = str_replace([' ', '.', '-'], '', $sq);
+
+        // Considera apenas os 6 primeiros caracteres (Setor + Quadra)
+        $sqTruncado = substr($sqSanitizado, 0, 6);
+
+        return DB::table('impacto_zoneamento_rev18177_v1')
+            ->where('sql_truncado', 'like', $sqTruncado . '%')
             ->get();
     }
 }

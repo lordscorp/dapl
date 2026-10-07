@@ -63,6 +63,7 @@ class BusinessIntelligence extends Controller
             'distritos'         => 'nullable|array',
             'subprefeituras'    => 'nullable|array',
             'interessado'       => 'nullable|string',
+            'cnpj'       => 'nullable|string',
             'gerarXlsx'         => 'nullable|boolean',
         ]);
 
